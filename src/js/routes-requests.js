@@ -357,7 +357,7 @@ function registerRequestRoutes(app, pool) {
         `SELECT p.id_peticion AS id, p.descripcion, p.colonia, p.monto,
                 p.tipo_tarifa, p.subcategoria,
                 TO_CHAR(p.fecha_programada, 'YYYY-MM-DD') AS fecha,
-                TIME_FORMAT(p.hora_programada, '%H:%i') AS hora,
+                LEFT(p.hora_programada::text, 5) AS hora,
                 c.nombre AS categoria, z.estado AS estado_zona, z.municipio,
                 u.nombre_completo AS solicitante, e.nombre AS estado
          FROM peticion p
@@ -456,7 +456,7 @@ function registerRequestRoutes(app, pool) {
         `SELECT p.id_peticion AS id, s.id_servicio, p.descripcion, p.colonia, p.monto,
                 p.tipo_tarifa, p.subcategoria,
                 TO_CHAR(p.fecha_programada, 'YYYY-MM-DD') AS fecha,
-                TIME_FORMAT(p.hora_programada, '%H:%i') AS hora,
+                LEFT(p.hora_programada::text, 5) AS hora,
                 c.nombre AS categoria, z.estado AS estado_zona, z.municipio,
                 u.nombre_completo AS solicitante, u.correo AS solicitante_correo,
                 u.telefono_cifrado AS solicitante_telefono,
@@ -540,7 +540,7 @@ function registerRequestRoutes(app, pool) {
       `SELECT s.id_servicio, s.id_postulacion, s.confirmado_prestador, p.id_peticion,
               p.id_estado_peticion,
               TO_CHAR(p.fecha_programada, 'YYYY-MM-DD') AS fecha_programada,
-              TIME_FORMAT(p.hora_programada, '%H:%i') AS hora_programada
+              LEFT(p.hora_programada::text, 5) AS hora_programada
        FROM servicio s
        JOIN peticion p ON p.id_peticion = s.id_peticion
        JOIN postulacion po ON po.id_postulacion = s.id_postulacion
