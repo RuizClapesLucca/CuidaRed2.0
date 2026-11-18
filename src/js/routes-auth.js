@@ -283,10 +283,10 @@ function registerRoutes(app, pool) {
       const [roles] = await pool.execute(
         `SELECT ur.id_rol, r.nombre FROM usuario_rol ur
          JOIN cat_rol r ON r.id_rol = ur.id_rol
-         WHERE ur.id_usuario = ? ORDER BY ur.id_rol LIMIT 1`,
+         WHERE ur.id_usuario = ? ORDER BY ur.id_rol`,
         [user.id_usuario]
       );
-      const role = Number(roles[0]?.id_rol) === 2 ? "prestador" : "solicitante";
+      const role = roles.some((item) => Number(item.id_rol) === 2) ? "prestador" : "solicitante";
       request.session.user = { id: user.id_usuario, name: user.nombre_completo, role };
       return response.redirect(
         role === "prestador" ? "/prestador/servicios.html" : "/solicitante/solicitar-servicio.html"
