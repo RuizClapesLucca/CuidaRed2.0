@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "https://TU-APP.onrender.com/$1" }
+    { "source": "/(.*)", "destination": "https://cuidared2-0.onrender.com/$1" }
   ]
 }
