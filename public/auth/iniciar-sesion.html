@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos básicos y hoja de estilos del formulario de acceso. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Iniciar sesión | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <!-- Encabezado de autenticación con acceso a la página principal. -->
+    <header class="site-header site-header--auth">
+      <a class="brand" href="/Modulo1.html">CUIDARED</a>
+    </header>
+    <main class="auth-main">
+      <!-- Contenedor principal del formulario de inicio de sesión. -->
+      <h1 class="auth-title">Bienvenido a CUIDARED</h1>
+      <p class="auth-subtitle">Inicia sesión para continuar</p>
+      <section class="auth-card">
+        <p class="form-section-subtitle">¿Quieres hacer una solicitud? Inicia sesión y encontrarás el cuestionario para publicarla.</p>
+        <p class="form-message form-message--error" id="message" role="alert"></p>
+        <!-- El formulario envía las credenciales al endpoint de autenticación. -->
+        <form id="login-form" action="/api/login" method="post">
+          <div class="field">
+            <label class="field-label" for="correo">Correo electrónico o teléfono</label>
+            <input class="field-input" id="correo" name="correo" type="text" required autocomplete="username" placeholder="correo@ejemplo.com o 10 dígitos">
+          </div>
+          <div class="field">
+            <label class="field-label" for="password">Contraseña</label>
+            <input class="field-input" id="password" name="password" type="password" required minlength="8" autocomplete="current-password">
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit">Iniciar sesión</button>
+            <a class="auth-link" href="/auth/registro.html">Crear una cuenta</a>
+          </div>
+        </form>
+      </section>
+    </main>
+    <!-- Lógica externa para mostrar errores recibidos en la URL. -->
+    <script src="/js/auth/iniciar-sesion.js"></script>
+  </body>
+</html>

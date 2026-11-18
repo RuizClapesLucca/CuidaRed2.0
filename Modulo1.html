@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos de la página principal y hoja de estilos compartida. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Servicios | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <!-- Encabezado con navegación a las opciones de autenticación. -->
+    <header class="site-header">
+      <a class="brand" href="/Modulo1.html">QUEQUECORP · CUIDARED</a>
+      <nav class="header-nav">
+        <a class="header-link" href="#hero">Inicio</a>
+        <a class="header-link" href="#como-funciona">Cómo funciona</a>
+        <a class="header-link" href="#servicios">Servicios</a>
+        <a class="header-link" href="#contacto">Contacto</a>
+        <button class="header-button theme-toggle" id="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false">Modo oscuro</button>
+        <a class="header-link" href="/auth/iniciar-sesion.html">Iniciar sesión</a>
+        <a class="header-button" href="/auth/registro.html">Registrarme</a>
+      </nav>
+    </header>
+    <main class="page-main home-main">
+      <!-- Hero principal con carrusel de fondo y mensaje centrado. -->
+      <section class="home-hero" id="hero">
+        <!-- Imágenes apiladas del carrusel (img1 visible primero). -->
+        <div class="hero-carousel" aria-hidden="true">
+          <img class="hero-carousel-image active" src="/img/img1.png" alt="Persona brindando apoyo comunitario en CuidaRed">
+          <img class="hero-carousel-image" src="/img/img2.png" alt="Acompañamiento de confianza para actividades cotidianas">
+          <img class="hero-carousel-image" src="/img/img3.jpeg" alt="Servicio de ayuda a domicilio con trato cercano">
+          <img class="hero-carousel-image" src="/img/img4.jpg" alt="Red de apoyo vecinal disponible en CuidaRed">
+          <img class="hero-carousel-image" src="/img/img5.png" alt="Prestadores y solicitantes conectando servicios de confianza">
+        </div>
+
+        <!-- Capa oscura para mejorar el contraste del texto sobre las imágenes. -->
+        <div class="hero-overlay" aria-hidden="true"></div>
+
+        <!-- Contenido principal del hero: nombre del proyecto, eslogan y CTA. -->
+        <div class="home-hero-content">
+          <p class="eyebrow">CUIDARED</p>
+          <h1 class="page-title home-hero-title">Ayuda de confianza, a un clic</h1>
+          <div class="home-hero-actions">
+            <a class="btn-primary home-hero-button" href="/auth/registro.html">Comenzar</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bloque explicativo del flujo en tres pasos. -->
+      <section class="info-section" id="como-funciona">
+        <div class="section-heading section-heading--center">
+          <p class="eyebrow">Como funciona</p>
+          <h2 class="section-title">¿Cómo funciona?</h2>
+          <p class="section-description">Empieza en tres pasos sencillos y organiza tu servicio sin complicaciones.</p>
+        </div>
+        <ol class="steps-list">
+          <li class="step-card">
+            <span class="step-number">1</span>
+            <div>
+              <h3>Registrate</h3>
+              <p>Crea tu cuenta como solicitante o prestador para empezar a conectar.</p>
+            </div>
+          </li>
+          <li class="step-card">
+            <span class="step-number">2</span>
+            <div>
+              <h3>Busca o publica</h3>
+              <p>Publica lo que necesitas o explora solicitudes disponibles por categoria.</p>
+            </div>
+          </li>
+          <li class="step-card">
+            <span class="step-number">3</span>
+            <div>
+              <h3>Conecta y califica</h3>
+              <p>Coordina el servicio, completalo y deja tu valoracion para la comunidad.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Catálogo principal dividido por tipo de usuario. -->
+      <section class="info-section" id="servicios">
+        <div class="section-heading section-heading--center">
+          <p class="eyebrow">Servicios populares</p>
+          <h2 class="section-title">Opciones para ofrecer y para solicitar</h2>
+          <p class="section-description">Seis servicios clave organizados para que ubiques rapido lo que necesitas.</p>
+        </div>
+
+        <div class="service-groups" aria-label="Servicios populares por tipo de usuario">
+          <article class="services-group">
+            <h3 class="services-group-title">Para prestadores</h3>
+            <div class="service-grid service-grid--home">
+              <article class="service-card home-service-card">
+                <div class="service-card-content">
+                  <span class="service-icon" aria-hidden="true">TR</span>
+                  <h2>Traslado acompanado</h2>
+                  <p>Acompana a personas en traslados programados con rutas y horarios claros.</p>
+                </div>
+              </article>
+              <article class="service-card home-service-card">
+                <div class="service-card-content">
+                  <span class="service-icon" aria-hidden="true">CM</span>
+                  <h2>Compras asistidas</h2>
+                  <p>Apoya en compras de supermercado o farmacia y entrega con seguimiento.</p>
+                </div>
+              </article>
+              <article class="service-card home-service-card">
+                <div class="service-card-content">
+                  <span class="service-icon" aria-hidden="true">AC</span>
+                  <h2>Acompañamiento</h2>
+                  <p>Brinda compañía en actividades del hogar o salidas cotidianas.</p>
+                </div>
+              </article>
+            </div>
+          </article>
+
+          <article class="services-group">
+            <h3 class="services-group-title">Para buscadores de servicios</h3>
+            <div class="service-grid service-grid--home">
+              <article class="service-card home-service-card">
+                <div class="service-card-content">
+                  <span class="service-icon" aria-hidden="true">MD</span>
+                  <h2>Mandados urgentes</h2>
+                  <p>Solicita recoleccion y entrega de encargos ya pagados o listos para mover.</p>
+                </div>
+              </article>
+              <article class="service-card home-service-card">
+                <div class="service-card-content">
+                  <span class="service-icon" aria-hidden="true">CT</span>
+                  <h2>Traslado a citas</h2>
+                  <p>Programa transporte para citas medicas, tramites o actividades personales.</p>
+                </div>
+              </article>
+              <article class="service-card home-service-card">
+                <div class="service-card-content">
+                  <span class="service-icon" aria-hidden="true">AP</span>
+                  <h2>Apoyo personalizado</h2>
+                  <p>Describe tu necesidad y recibe propuestas de prestadores disponibles.</p>
+                </div>
+              </article>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer con enlaces y datos de contacto. -->
+    <footer class="site-footer contact-footer" id="contacto">
+      <!-- Enlaces de navegacion rapida para la portada. -->
+      <nav class="footer-nav" aria-label="Enlaces del sitio">
+        <ul>
+          <li><a class="footer-link" href="#hero">Inicio</a></li>
+          <li><a class="footer-link" href="#como-funciona">Como funciona</a></li>
+          <li><a class="footer-link" href="#servicios">Servicios</a></li>
+        </ul>
+        <ul>
+          <li><a class="footer-link" href="/auth/registro.html">Crear cuenta</a></li>
+          <li><a class="footer-link" href="/auth/iniciar-sesion.html">Iniciar sesion</a></li>
+          <li><a class="footer-link" href="#contacto">Contacto</a></li>
+        </ul>
+      </nav>
+
+      <!-- Datos de contacto institucional. -->
+      <div>
+        <strong>QUEQUECORP</strong>
+        <p>Estamos para ayudarte a conectar con tu comunidad.</p>
+      </div>
+      <div class="contact-details">
+        <h2>Contacto</h2>
+        <a href="mailto:quequecorp1234@gmail.com">quequecorp1234@gmail.com</a>
+        <a href="tel:+525530296321">55 3029 6321</a>
+      </div>
+    </footer>
+
+    <!-- Script del carrusel automático del hero principal. -->
+    <script src="/js/script.js"></script>
+  </body>
+</html>

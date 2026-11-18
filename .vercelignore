@@ -1,0 +1,9 @@
+src
+supabase
+public
+node_modules
+.env
+.env.*
+*.sql
+package.json
+package-lock.json

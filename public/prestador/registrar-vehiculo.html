@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Registrar vehículo | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/prestador/servicios.html">CUIDARED</a>
+      <nav class="header-nav">
+        <a class="header-link" href="/prestador/servicios.html">Solicitudes</a>
+        <a class="header-button" href="/api/logout">Cerrar sesión</a>
+      </nav>
+    </header>
+    <main class="page-main page-main--narrow">
+      <section class="page-heading page-heading--left">
+        <p class="eyebrow">Módulo del prestador</p>
+        <h1 class="page-title">Registrar vehículo</h1>
+        <p class="page-subtitle">Agrega los datos del coche que usarás para prestar servicios de transporte.</p>
+      </section>
+      <section class="auth-card auth-card--wide">
+        <p class="form-message form-message--error" id="error-message" role="alert"></p>
+        <p class="form-message form-message--success" id="success-message" role="status"></p>
+        <form id="vehicle-form" action="/api/prestador/vehiculo" method="post">
+          <div class="form-section">
+            <h2 class="form-section-title">Información del vehículo</h2>
+            <p class="form-section-subtitle">Usa el mismo cuestionario de vehículo del registro inicial.</p>
+            <div class="field-grid">
+              <div class="field">
+                <label class="field-label" for="tipo_vehiculo">Tipo de coche o vehículo</label>
+                <input class="field-input" id="tipo_vehiculo" name="tipo_vehiculo" maxlength="60" placeholder="Sedán, SUV, camioneta" required>
+              </div>
+              <div class="field">
+                <label class="field-label" for="color_vehiculo">Color</label>
+                <input class="field-input" id="color_vehiculo" name="color_vehiculo" maxlength="40" required>
+              </div>
+            </div>
+            <div class="field-grid">
+              <div class="field">
+                <label class="field-label" for="placas_vehiculo">Placas</label>
+                <input class="field-input" id="placas_vehiculo" name="placas_vehiculo" maxlength="10" pattern="[A-Za-z0-9 -]{5,10}" autocomplete="off" required>
+              </div>
+              <div class="field">
+                <label class="field-label" for="puertas_vehiculo">Número de puertas</label>
+                <input class="field-input" id="puertas_vehiculo" name="puertas_vehiculo" type="number" min="2" max="6" step="1" placeholder="2 a 6" required>
+                <p class="field-hint">Ayuda a conocer la capacidad para acompañar compras.</p>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit">Guardar vehículo</button>
+            <a class="auth-link-muted" href="/prestador/servicios.html">Volver a solicitudes</a>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script src="/js/auth/registrar-vehiculo.js"></script>
+  </body>
+</html>

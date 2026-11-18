@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos y estilos del módulo para prestadores. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Solicitudes disponibles | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <!-- Encabezado con navegación y cierre de sesión. -->
+    <header class="site-header">
+      <a class="brand" href="/prestador/servicios.html">CUIDARED</a>
+      <nav class="header-nav">
+        <a class="header-link" href="/prestador/registrar-vehiculo.html">Registrar vehículo</a>
+        <a class="header-button" href="/api/logout">Cerrar sesión</a>
+      </nav>
+    </header>
+    <main class="page-main">
+      <!-- Encabezado informativo y buscador de solicitudes. -->
+      <section class="page-heading page-heading--left">
+        <p class="eyebrow">Módulo del prestador</p>
+        <h1 class="page-title">Personas que necesitan apoyo</h1>
+        <p class="page-subtitle">Aquí aparecen las solicitudes reales publicadas por los solicitantes.</p>
+      </section>
+      <div class="search-bar">
+        <label class="sr-only" for="search">Buscar solicitud</label>
+        <input class="field-input" id="search" type="search" placeholder="Buscar por categoría, descripción o municipio">
+      </div>
+      <p class="form-message form-message--error" id="error-message" role="alert"></p>
+      <section class="request-tabs">
+        <div class="tabs" role="tablist">
+          <button class="tab-button is-active" type="button" data-tab="available-panel">Solicitudes hechas <span id="request-count">0</span></button>
+          <button class="tab-button" type="button" data-tab="accepted-panel">Solicitudes aceptadas <span id="accepted-count">0</span></button>
+          <button class="tab-button" type="button" data-tab="finished-panel">Tareas finalizadas <span id="finished-count">0</span></button>
+          <button class="tab-button" type="button" data-tab="reputation-panel">Mi reputación</button>
+        </div>
+        <div id="available-panel" class="tab-panel is-active">
+          <section class="request-grid" id="request-list" aria-label="Solicitudes de servicio"></section>
+        </div>
+        <div id="accepted-panel" class="tab-panel">
+          <div id="accepted-list"></div>
+        </div>
+        <div id="finished-panel" class="tab-panel">
+          <div id="finished-list"></div>
+        </div>
+        <div id="reputation-panel" class="tab-panel">
+          <section class="reputation-card" id="reputation-content"></section>
+        </div>
+      </section>
+    </main>
+    <!-- Lógica externa para consultar y filtrar solicitudes. -->
+    <script src="/js/api.js"></script>
+    <script src="/js/prestador/servicios.js"></script>
+  </body>
+</html>

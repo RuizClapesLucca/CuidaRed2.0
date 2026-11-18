@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos y estilos del módulo para solicitantes. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Solicitar servicio | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <!-- Encabezado con identidad del sitio y cierre de sesión. -->
+    <header class="site-header">
+      <a class="brand" href="/solicitante/solicitar-servicio.html">CUIDARED</a>
+      <nav class="header-nav"><a class="header-button" href="/api/logout">Cerrar sesión</a></nav>
+    </header>
+    <main class="page-main page-main--narrow">
+      <section class="page-heading page-heading--left">
+        <p class="eyebrow">Módulo del solicitante</p>
+        <h1 class="page-title">Solicitar un servicio</h1>
+        <p class="page-subtitle">Publica lo que necesitas para que los prestadores puedan verlo.</p>
+      </section>
+      <nav class="module-tabs" role="tablist" aria-label="Secciones del solicitante">
+        <button class="module-tab is-active" type="button" data-tab="creation-panel" role="tab" aria-selected="true">Creación</button>
+        <button class="module-tab" type="button" data-tab="active-panel" role="tab" aria-selected="false">Solicitudes activas <span id="request-count">0</span></button>
+        <button class="module-tab" type="button" data-tab="accepted-panel" role="tab" aria-selected="false">Solicitudes aceptadas <span id="accepted-count">0</span></button>
+        <button class="module-tab" type="button" data-tab="finished-panel" role="tab" aria-selected="false">Tareas finalizadas <span id="finished-count">0</span></button>
+      </nav>
+      <section id="creation-panel" class="module-panel is-active" role="tabpanel">
+        <section class="request-form-card">
+          <form id="request-form">
+          <div class="field">
+            <label class="field-label" for="id_categoria">Categoría</label>
+            <select class="field-input" id="id_categoria" name="id_categoria" required>
+              <option value="">Cargando categorías...</option>
+            </select>
+          </div>
+          <div class="field" id="subcategory-field" hidden>
+            <label class="field-label" id="subcategory-label" for="subcategoria">Tipo de apoyo</label>
+            <select class="field-input" id="subcategoria" name="subcategoria">
+              <option value="">Selecciona una opción</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="descripcion">¿Qué necesitas?</label>
+            <p class="field-hint" id="category-help">Selecciona un tipo de ayuda para ver sus indicaciones.</p>
+            <textarea class="field-input field-textarea" id="descripcion" name="descripcion" minlength="10" maxlength="500" required placeholder="Describe el apoyo que necesitas"></textarea>
+          </div>
+          <div class="field-grid">
+            <div class="field"><label class="field-label" for="fecha_programada">Fecha</label><input class="field-input" id="fecha_programada" name="fecha_programada" type="date" required><p class="field-hint">No puedes elegir una fecha anterior a hoy.</p></div>
+            <div class="field"><label class="field-label" for="hora_programada">Hora</label><input class="field-input" id="hora_programada" name="hora_programada" type="time" required></div>
+          </div>
+          <div class="field-grid">
+            <div class="field"><label class="field-label" for="tipo_tarifa">Cobro</label><select class="field-input" id="tipo_tarifa" name="tipo_tarifa" required><option value="servicio">Por servicio</option><option value="hora">Por hora</option></select></div>
+            <div class="field"><label class="field-label" for="monto">Precio (MXN)</label><input class="field-input" id="monto" name="monto" type="number" min="50" max="5000" step="0.01" required placeholder="50 a 5,000"></div>
+          </div>
+          <div id="service-address-field">
+            <h3 class="field-label" id="service-address-label">Domicilio donde se realizará el acompañamiento</h3>
+            <div class="field-grid">
+              <div class="field"><label class="field-label" for="estado">Estado</label><input class="field-input" id="estado" name="estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
+              <div class="field"><label class="field-label" for="municipio">Municipio o alcaldía</label><input class="field-input" id="municipio" name="municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
+            </div>
+            <div class="field"><label class="field-label" for="colonia">Colonia</label><input class="field-input" id="colonia" name="colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
+            <div class="field"><label class="field-label" for="calle">Calle</label><input class="field-input" id="calle" name="calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
+            <div class="field-grid">
+              <div class="field"><label class="field-label" for="numero_exterior">Número exterior</label><input class="field-input" id="numero_exterior" name="numero_exterior" maxlength="10" pattern="[\p{L}\d-]+" required></div>
+              <div class="field"><label class="field-label" for="numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="numero_interior" name="numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+            </div>
+            <div class="field"><label class="field-label" for="codigo_postal">Código postal</label><input class="field-input" id="codigo_postal" name="codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" required></div>
+          </div>
+          <div id="route-fields" hidden>
+            <h3 class="field-label" id="route-title"></h3>
+            <div class="address-group" id="origin-address-fields">
+              <h4 class="field-label">Dirección de inicio</h4>
+              <div class="field-grid">
+                <div class="field"><label class="field-label" for="origen_estado">Estado</label><input class="field-input address-input" id="origen_estado" name="origen_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+                <div class="field"><label class="field-label" for="origen_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="origen_municipio" name="origen_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              </div>
+              <div class="field"><label class="field-label" for="origen_colonia">Colonia</label><input class="field-input address-input" id="origen_colonia" name="origen_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field"><label class="field-label" for="origen_calle">Calle</label><input class="field-input address-input" id="origen_calle" name="origen_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field-grid">
+                <div class="field"><label class="field-label" for="origen_numero_exterior">Número exterior</label><input class="field-input address-input" id="origen_numero_exterior" name="origen_numero_exterior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+                <div class="field"><label class="field-label" for="origen_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="origen_numero_interior" name="origen_numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+              </div>
+              <div class="field"><label class="field-label" for="origen_codigo_postal">Código postal</label><input class="field-input address-input" id="origen_codigo_postal" name="origen_codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}"></div>
+            </div>
+            <div class="address-group" id="destination-address-fields">
+              <h4 class="field-label">Dirección final</h4>
+              <div class="field-grid">
+                <div class="field"><label class="field-label" for="destino_estado">Estado</label><input class="field-input address-input" id="destino_estado" name="destino_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+                <div class="field"><label class="field-label" for="destino_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="destino_municipio" name="destino_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              </div>
+              <div class="field"><label class="field-label" for="destino_colonia">Colonia</label><input class="field-input address-input" id="destino_colonia" name="destino_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field"><label class="field-label" for="destino_calle">Calle</label><input class="field-input address-input" id="destino_calle" name="destino_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field-grid">
+                <div class="field"><label class="field-label" for="destino_numero_exterior">Número exterior</label><input class="field-input address-input" id="destino_numero_exterior" name="destino_numero_exterior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+                <div class="field"><label class="field-label" for="destino_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="destino_numero_interior" name="destino_numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+              </div>
+              <div class="field"><label class="field-label" for="destino_codigo_postal">Código postal</label><input class="field-input address-input" id="destino_codigo_postal" name="destino_codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}"></div>
+            </div>
+            <div class="address-group" id="shopping-address-fields">
+              <h4 class="field-label">Dirección del supermercado</h4>
+              <div class="field-grid">
+                <div class="field"><label class="field-label" for="supermercado_estado">Estado</label><input class="field-input address-input" id="supermercado_estado" name="supermercado_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+                <div class="field"><label class="field-label" for="supermercado_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="supermercado_municipio" name="supermercado_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              </div>
+              <div class="field"><label class="field-label" for="supermercado_colonia">Colonia</label><input class="field-input address-input" id="supermercado_colonia" name="supermercado_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field"><label class="field-label" for="supermercado_calle">Calle</label><input class="field-input address-input" id="supermercado_calle" name="supermercado_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field-grid">
+                <div class="field"><label class="field-label" for="supermercado_numero_exterior">Número exterior</label><input class="field-input address-input" id="supermercado_numero_exterior" name="supermercado_numero_exterior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+                <div class="field"><label class="field-label" for="supermercado_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="supermercado_numero_interior" name="supermercado_numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+              </div>
+              <div class="field"><label class="field-label" for="supermercado_codigo_postal">Código postal</label><input class="field-input address-input" id="supermercado_codigo_postal" name="supermercado_codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}"></div>
+            </div>
+          </div>
+          <div class="form-actions form-actions--row"><button class="btn-primary" type="submit">Publicar solicitud</button></div>
+          <p class="form-message form-message--success" id="success-message" role="status"></p>
+          <p class="form-message form-message--error" id="error-message" role="alert"></p>
+          </form>
+        </section>
+      </section>
+      <section id="active-panel" class="module-panel" role="tabpanel">
+        <section class="active-services">
+          <div id="request-list"></div>
+        </section>
+      </section>
+      <section id="accepted-panel" class="module-panel" role="tabpanel">
+        <section class="active-services">
+          <div id="accepted-list"></div>
+        </section>
+      </section>
+      <section id="finished-panel" class="module-panel" role="tabpanel">
+        <section class="active-services">
+          <div id="finished-list"></div>
+        </section>
+      </section>
+    </main>
+    <!-- Lógica externa para cargar categorías, publicar y listar solicitudes. -->
+    <script src="/js/api.js"></script>
+    <script src="/js/prestador/solicitar-servicio.js"></script>
+  </body>
+</html>
