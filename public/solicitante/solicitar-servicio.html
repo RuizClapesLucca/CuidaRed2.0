@@ -56,14 +56,14 @@
           <div id="service-address-field">
             <h3 class="field-label" id="service-address-label">Domicilio donde se realizará el acompañamiento</h3>
             <div class="field-grid">
-              <div class="field"><label class="field-label" for="estado">Estado</label><input class="field-input" id="estado" name="estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
-              <div class="field"><label class="field-label" for="municipio">Municipio o alcaldía</label><input class="field-input" id="municipio" name="municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
+              <div class="field"><label class="field-label" for="estado">Estado</label><input class="field-input" id="estado" name="estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'\-]*" required></div>
+              <div class="field"><label class="field-label" for="municipio">Municipio o alcaldía</label><input class="field-input" id="municipio" name="municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'\-]*" required></div>
             </div>
-            <div class="field"><label class="field-label" for="colonia">Colonia</label><input class="field-input" id="colonia" name="colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
-            <div class="field"><label class="field-label" for="calle">Calle</label><input class="field-input" id="calle" name="calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]*" required></div>
+            <div class="field"><label class="field-label" for="colonia">Colonia</label><input class="field-input" id="colonia" name="colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'\-]*" required></div>
+            <div class="field"><label class="field-label" for="calle">Calle</label><input class="field-input" id="calle" name="calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'\-]*" required></div>
             <div class="field-grid">
-              <div class="field"><label class="field-label" for="numero_exterior">Número exterior</label><input class="field-input" id="numero_exterior" name="numero_exterior" maxlength="10" pattern="[\p{L}\d-]+" required></div>
-              <div class="field"><label class="field-label" for="numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="numero_interior" name="numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+              <div class="field"><label class="field-label" for="numero_exterior">Número exterior</label><input class="field-input" id="numero_exterior" name="numero_exterior" maxlength="10" pattern="[\p{L}\d\-]+" required></div>
+              <div class="field"><label class="field-label" for="numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="numero_interior" name="numero_interior" maxlength="10" pattern="[\p{L}\d\-]+"></div>
             </div>
             <div class="field"><label class="field-label" for="codigo_postal">Código postal</label><input class="field-input" id="codigo_postal" name="codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" required></div>
           </div>
@@ -72,42 +72,42 @@
             <div class="address-group" id="origin-address-fields">
               <h4 class="field-label">Dirección de inicio</h4>
               <div class="field-grid">
-                <div class="field"><label class="field-label" for="origen_estado">Estado</label><input class="field-input address-input" id="origen_estado" name="origen_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
-                <div class="field"><label class="field-label" for="origen_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="origen_municipio" name="origen_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+                <div class="field"><label class="field-label" for="origen_estado">Estado</label><input class="field-input address-input" id="origen_estado" name="origen_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
+                <div class="field"><label class="field-label" for="origen_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="origen_municipio" name="origen_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
               </div>
-              <div class="field"><label class="field-label" for="origen_colonia">Colonia</label><input class="field-input address-input" id="origen_colonia" name="origen_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
-              <div class="field"><label class="field-label" for="origen_calle">Calle</label><input class="field-input address-input" id="origen_calle" name="origen_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field"><label class="field-label" for="origen_colonia">Colonia</label><input class="field-input address-input" id="origen_colonia" name="origen_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
+              <div class="field"><label class="field-label" for="origen_calle">Calle</label><input class="field-input address-input" id="origen_calle" name="origen_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
               <div class="field-grid">
-                <div class="field"><label class="field-label" for="origen_numero_exterior">Número exterior</label><input class="field-input address-input" id="origen_numero_exterior" name="origen_numero_exterior" maxlength="10" pattern="[\p{L}\d-]+"></div>
-                <div class="field"><label class="field-label" for="origen_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="origen_numero_interior" name="origen_numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+                <div class="field"><label class="field-label" for="origen_numero_exterior">Número exterior</label><input class="field-input address-input" id="origen_numero_exterior" name="origen_numero_exterior" maxlength="10" pattern="[\p{L}\d\-]+"></div>
+                <div class="field"><label class="field-label" for="origen_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="origen_numero_interior" name="origen_numero_interior" maxlength="10" pattern="[\p{L}\d\-]+"></div>
               </div>
               <div class="field"><label class="field-label" for="origen_codigo_postal">Código postal</label><input class="field-input address-input" id="origen_codigo_postal" name="origen_codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}"></div>
             </div>
             <div class="address-group" id="destination-address-fields">
               <h4 class="field-label">Dirección final</h4>
               <div class="field-grid">
-                <div class="field"><label class="field-label" for="destino_estado">Estado</label><input class="field-input address-input" id="destino_estado" name="destino_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
-                <div class="field"><label class="field-label" for="destino_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="destino_municipio" name="destino_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+                <div class="field"><label class="field-label" for="destino_estado">Estado</label><input class="field-input address-input" id="destino_estado" name="destino_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
+                <div class="field"><label class="field-label" for="destino_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="destino_municipio" name="destino_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
               </div>
-              <div class="field"><label class="field-label" for="destino_colonia">Colonia</label><input class="field-input address-input" id="destino_colonia" name="destino_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
-              <div class="field"><label class="field-label" for="destino_calle">Calle</label><input class="field-input address-input" id="destino_calle" name="destino_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field"><label class="field-label" for="destino_colonia">Colonia</label><input class="field-input address-input" id="destino_colonia" name="destino_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
+              <div class="field"><label class="field-label" for="destino_calle">Calle</label><input class="field-input address-input" id="destino_calle" name="destino_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
               <div class="field-grid">
-                <div class="field"><label class="field-label" for="destino_numero_exterior">Número exterior</label><input class="field-input address-input" id="destino_numero_exterior" name="destino_numero_exterior" maxlength="10" pattern="[\p{L}\d-]+"></div>
-                <div class="field"><label class="field-label" for="destino_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="destino_numero_interior" name="destino_numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+                <div class="field"><label class="field-label" for="destino_numero_exterior">Número exterior</label><input class="field-input address-input" id="destino_numero_exterior" name="destino_numero_exterior" maxlength="10" pattern="[\p{L}\d\-]+"></div>
+                <div class="field"><label class="field-label" for="destino_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="destino_numero_interior" name="destino_numero_interior" maxlength="10" pattern="[\p{L}\d\-]+"></div>
               </div>
               <div class="field"><label class="field-label" for="destino_codigo_postal">Código postal</label><input class="field-input address-input" id="destino_codigo_postal" name="destino_codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}"></div>
             </div>
             <div class="address-group" id="shopping-address-fields">
               <h4 class="field-label">Dirección del supermercado</h4>
               <div class="field-grid">
-                <div class="field"><label class="field-label" for="supermercado_estado">Estado</label><input class="field-input address-input" id="supermercado_estado" name="supermercado_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
-                <div class="field"><label class="field-label" for="supermercado_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="supermercado_municipio" name="supermercado_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+                <div class="field"><label class="field-label" for="supermercado_estado">Estado</label><input class="field-input address-input" id="supermercado_estado" name="supermercado_estado" maxlength="60" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
+                <div class="field"><label class="field-label" for="supermercado_municipio">Municipio o alcaldía</label><input class="field-input address-input" id="supermercado_municipio" name="supermercado_municipio" maxlength="80" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
               </div>
-              <div class="field"><label class="field-label" for="supermercado_colonia">Colonia</label><input class="field-input address-input" id="supermercado_colonia" name="supermercado_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
-              <div class="field"><label class="field-label" for="supermercado_calle">Calle</label><input class="field-input address-input" id="supermercado_calle" name="supermercado_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'-]+"></div>
+              <div class="field"><label class="field-label" for="supermercado_colonia">Colonia</label><input class="field-input address-input" id="supermercado_colonia" name="supermercado_colonia" maxlength="100" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
+              <div class="field"><label class="field-label" for="supermercado_calle">Calle</label><input class="field-input address-input" id="supermercado_calle" name="supermercado_calle" maxlength="120" pattern="[\p{L}\d][\p{L}\d\s.'\-]+"></div>
               <div class="field-grid">
-                <div class="field"><label class="field-label" for="supermercado_numero_exterior">Número exterior</label><input class="field-input address-input" id="supermercado_numero_exterior" name="supermercado_numero_exterior" maxlength="10" pattern="[\p{L}\d-]+"></div>
-                <div class="field"><label class="field-label" for="supermercado_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="supermercado_numero_interior" name="supermercado_numero_interior" maxlength="10" pattern="[\p{L}\d-]+"></div>
+                <div class="field"><label class="field-label" for="supermercado_numero_exterior">Número exterior</label><input class="field-input address-input" id="supermercado_numero_exterior" name="supermercado_numero_exterior" maxlength="10" pattern="[\p{L}\d\-]+"></div>
+                <div class="field"><label class="field-label" for="supermercado_numero_interior">Número interior <span class="field-hint">(opcional)</span></label><input class="field-input" id="supermercado_numero_interior" name="supermercado_numero_interior" maxlength="10" pattern="[\p{L}\d\-]+"></div>
               </div>
               <div class="field"><label class="field-label" for="supermercado_codigo_postal">Código postal</label><input class="field-input address-input" id="supermercado_codigo_postal" name="supermercado_codigo_postal" inputmode="numeric" maxlength="5" pattern="[0-9]{5}"></div>
             </div>
