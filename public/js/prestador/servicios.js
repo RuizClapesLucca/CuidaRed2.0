@@ -66,10 +66,10 @@ async function loadRequests() {
     requestJson("/api/solicitudes/aceptadas"),
     requestJson("/api/solicitudes/aceptadas?estado=finalizadas")
   ]);
-  requests = data.requests;
+  requests = data.requests.map(localizeSchedule);
   renderRequests();
-  renderAcceptedRequests(acceptedData.requests);
-  renderFinishedRequests(finishedData.requests);
+  renderAcceptedRequests(acceptedData.requests.map(localizeSchedule));
+  renderFinishedRequests(finishedData.requests.map(localizeSchedule));
   requestJson("/api/prestador/reputacion")
     .then(renderReputation)
     .catch((error) => {
@@ -77,7 +77,7 @@ async function loadRequests() {
         error.message || "No fue posible cargar la reputación.";
     });
   if (availabilityTimer) window.clearTimeout(availabilityTimer);
-  const nextService = acceptedData.requests
+  const nextService = acceptedData.requests.map(localizeSchedule)
     .filter((item) => !item.iniciado)
     .map((item) => new Date(`${item.fecha}T${item.hora}`).getTime() + START_GRACE_PERIOD_MS)
     .filter((time) => time > Date.now())

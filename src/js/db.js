@@ -7,6 +7,8 @@ const { Pool, types } = require("pg");
 // PostgreSQL devuelve los BIGINT como texto. Los convertimos a número para que
 // los IDs se comporten igual que antes con MySQL.
 types.setTypeParser(20, (value) => Number(value));
+// DATE llega como texto "AAAA-MM-DD" para poder combinarlo con la hora sin errores de zona.
+types.setTypeParser(1082, (value) => value);
 
 // Detiene la app con un mensaje claro si falta una variable en el entorno.
 function required(name) {

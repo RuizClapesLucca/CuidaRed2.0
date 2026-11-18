@@ -74,9 +74,9 @@ async function loadPage() {
   categorySelect.innerHTML = '<option value="">Selecciona una categoría</option>' +
     catalog.categories.map((item) => `<option value="${item.id}">${escapeHtml(item.nombre)}</option>`).join("");
   updateCategoryFields();
-  renderRequests(data.requests);
-  renderAcceptedRequests(acceptedData.requests);
-  renderFinishedRequests(finishedData.requests);
+  renderRequests(data.requests.map(localizeSchedule));
+  renderAcceptedRequests(acceptedData.requests.map(localizeSchedule));
+  renderFinishedRequests(finishedData.requests.map(localizeSchedule));
 }
 
 async function refreshServiceLists() {
@@ -84,8 +84,8 @@ async function refreshServiceLists() {
     requestJson("/api/solicitudes/aceptadas"),
     requestJson("/api/solicitudes/aceptadas?estado=finalizadas")
   ]);
-  renderAcceptedRequests(acceptedData.requests);
-  renderFinishedRequests(finishedData.requests);
+  renderAcceptedRequests(acceptedData.requests.map(localizeSchedule));
+  renderFinishedRequests(finishedData.requests.map(localizeSchedule));
 }
 
 function updateCategoryFields() {
@@ -283,7 +283,7 @@ requestList.addEventListener("click", async (event) => {
       await requestJson(`/api/solicitudes/${editButton.dataset.id}/horario`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fecha_programada: date, hora_programada: time })
+        body: JSON.stringify(localToUtcSchedule(date, time))
       });
     } catch (error) {
       errorMessage.textContent = error.message;
@@ -364,7 +364,7 @@ form.addEventListener("submit", async (event) => {
     await requestJson("/api/solicitudes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(new FormData(form)))
+      body: JSON.stringify({ ...Object.fromEntries(new FormData(form)), ...localToUtcSchedule(dateInput.value, timeInput.value) })
     });
   } catch (error) {
     if (error.status === 401) {

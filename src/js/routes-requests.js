@@ -4,7 +4,7 @@ const { decryptSensitiveValue } = require("./config");
 
 // Comprueba formato válido y que la fecha/hora todavía no hayan pasado.
 function isFutureSchedule(date, time) {
-  const value = new Date(`${date}T${time}`);
+  const value = new Date(`${date}T${time}:00Z`);
   return (
     !Number.isNaN(value.getTime()) &&
     /^\d{4}-\d{2}-\d{2}$/.test(String(date)) &&
@@ -91,7 +91,7 @@ async function removeExpiredUnstartedServices(pool) {
        WHERE p.id_estado_peticion = 2
          AND COALESCE(s.confirmado_prestador, FALSE) = FALSE
          AND (p.fecha_programada + p.hora_programada)
-             <= (NOW() - INTERVAL '10 minutes')
+             <= ((NOW() AT TIME ZONE 'UTC') - INTERVAL '10 minutes')
        FOR UPDATE`
     );
     for (const service of expiredServices) {
@@ -365,7 +365,7 @@ function registerRequestRoutes(app, pool) {
          JOIN cat_zona z ON z.id_zona = p.id_zona
          JOIN usuario u ON u.id_usuario = p.id_buscador
          JOIN cat_estado_peticion e ON e.id_estado_peticion = p.id_estado_peticion
-         WHERE ${where} AND (p.fecha_programada + p.hora_programada) > NOW()
+         WHERE ${where} AND (p.fecha_programada + p.hora_programada) > (NOW() AT TIME ZONE 'UTC')
          ORDER BY p.fecha_creacion DESC`,
         params
       );
@@ -570,11 +570,11 @@ function registerRequestRoutes(app, pool) {
         await connection.rollback();
         return response.status(409).json({ message: "El servicio no está disponible para iniciar." });
       }
-      if (new Date(`${service.fecha_programada}T${service.hora_programada}`) > new Date()) {
+      if (new Date(`${service.fecha_programada}T${service.hora_programada}Z`) > new Date()) {
         await connection.rollback();
         return response.status(409).json({ message: "Aún no llega la fecha y hora del servicio." });
       }
-      const startDeadline = new Date(`${service.fecha_programada}T${service.hora_programada}`);
+      const startDeadline = new Date(`${service.fecha_programada}T${service.hora_programada}Z`);
       // El inicio solo se permite desde la hora programada hasta diez minutos
       // después; la limpieza periódica elimina los servicios que exceden ese plazo.
       startDeadline.setMinutes(startDeadline.getMinutes() + START_GRACE_PERIOD_MINUTES);
@@ -688,7 +688,7 @@ function registerRequestRoutes(app, pool) {
          FROM peticion p
          JOIN cat_categoria c ON c.id_categoria = p.id_categoria
          WHERE p.id_peticion = ? AND p.id_estado_peticion = 1
-           AND (p.fecha_programada + p.hora_programada) > NOW() FOR UPDATE`,
+           AND (p.fecha_programada + p.hora_programada) > (NOW() AT TIME ZONE 'UTC') FOR UPDATE`,
         [requestId]
       );
       if (petitions.length === 0) {
