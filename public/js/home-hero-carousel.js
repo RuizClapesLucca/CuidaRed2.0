@@ -6,7 +6,7 @@
   const slides = Array.from(hero.querySelectorAll(".hero-carousel-image"));
   if (slides.length === 0) return;
 
-  const intervalMs = 5000;
+  const intervalMs = 500;
   let currentIndex = 0;
   let timerId = null;
 
