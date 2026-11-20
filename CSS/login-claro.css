@@ -1,3 +1,6 @@
+/* importacion de Inter desde Google Fonts como reemplazo de San Francisco */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 /*
  * CUIDARED · Módulo de autenticación · MODO CLARO
  *
@@ -38,6 +41,16 @@
   --color-error: #b0362a;
   --hero-header-offset: 76px;
 
+  /* tipografia Inter como reemplazo de San Francisco */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* radio para pills */
+  --radius-pill: 999px;
+
+  /* sombras para cards */
+  --shadow-card: 0 1px 3px rgba(36,31,28,0.08), 0 4px 12px rgba(36,31,28,0.06);
+  --shadow-hover: 0 4px 16px rgba(36,31,28,0.14), 0 1px 4px rgba(36,31,28,0.08);
+
   box-sizing: border-box;
 }
 
@@ -52,16 +65,15 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
+  /* usa Inter definida en --font-sans */
+  font-family: var(--font-sans);
   background: var(--color-fondo);
   color: var(--color-texto);
 }
 
 /* Encabezado */
 .site-header {
-  background: var(--color-header);
+  background: #ffffff;
   border-bottom: 1px solid var(--color-borde);
   display: flex;
   align-items: center;
@@ -69,6 +81,39 @@ body {
   flex-wrap: wrap;
   gap: 12px;
   padding: 16px 32px;
+}
+
+/* header fijo al hacer scroll */
+.site-header--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 var(--color-borde), 0 2px 8px rgba(36, 31, 28, 0.06);
+}
+
+/* grupo de acciones de sesion y tema a la derecha del header */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* boton sin fondo para acciones secundarias */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-ghost:hover {
+  background: var(--color-fondo);
+  border-color: var(--color-texto-suave);
 }
 
 .site-header--auth {
@@ -125,7 +170,7 @@ body {
   background: var(--color-fondo);
 }
 
-/* Barra de navegación */
+/* Barra de navegacion fija al hacer scroll */
 .subnav {
   background: var(--color-subnav);
   border-bottom: 1px solid var(--color-borde);
@@ -133,6 +178,9 @@ body {
   gap: 20px;
   padding: 10px 32px;
   font-size: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 99;
 }
 
 .subnav-link {
@@ -785,18 +833,28 @@ body {
   font-size: 17px;
 }
 
+/* contenedor del icono SVG de cada card de servicio */
 .service-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
   color: var(--color-primario);
-  background: rgba(193, 87, 58, 0.1);
-  border: 1px solid rgba(193, 87, 58, 0.25);
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  background: rgba(193, 87, 58, 0.08);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* SVG dentro del icono: sin relleno, solo trazo del color del contenedor */
+.service-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .contact-footer {
@@ -1252,9 +1310,20 @@ body.theme-dark .hero-overlay {
   );
 }
 
-/* Tema oscuro: estado visual del botón activo */
-body.theme-dark .theme-toggle {
+/* Tema oscuro: estado visual del boton activo y btn-ghost */
+body.theme-dark .theme-toggle,
+body.theme-dark .btn-ghost {
   border-color: #5d4b3e;
   background: #2f2720;
   color: #f5ede5;
 }
+
+/* Tema oscuro: fondo del header y subnav */
+body.theme-dark .site-header {
+  background: #221d19;
+}
+
+body.theme-dark .subnav {
+  background: #201b17;
+}
+
