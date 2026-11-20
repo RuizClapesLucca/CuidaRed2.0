@@ -1,44 +1,52 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <!-- Metadatos de la página principal y hoja de estilos compartida. -->
+    <!-- Metadatos de la pagina principal y hoja de estilos compartida. -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Servicios | CUIDARED</title>
+    <!-- preconexion a Google Fonts para reducir tiempo de carga -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/CSS/login-claro.css">
   </head>
   <body>
-    <!-- Encabezado con navegación a las opciones de autenticación. -->
-    <header class="site-header">
-      <a class="brand" href="/Modulo1.html">QUEQUECORP · CUIDARED</a>
-      <nav class="header-nav">
-        <a class="header-link" href="#hero">Inicio</a>
-        <a class="header-link" href="#como-funciona">Cómo funciona</a>
-        <a class="header-link" href="#servicios">Servicios</a>
-        <a class="header-link" href="#contacto">Contacto</a>
-        <button class="header-button theme-toggle" id="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false">Modo oscuro</button>
+    <!-- Header superior: solo marca, acciones de sesion y toggle de tema. -->
+    <header class="site-header site-header--sticky">
+      <!-- marca simplificada sin nombre de empresa -->
+      <a class="brand" href="/Modulo1.html">CuidaRed</a>
+      <!-- acciones de sesion y tema agrupadas a la derecha -->
+      <div class="header-actions">
+        <button class="btn-ghost theme-toggle" id="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false">Modo oscuro</button>
         <a class="header-link" href="/auth/iniciar-sesion.html">Iniciar sesión</a>
         <a class="header-button" href="/auth/registro.html">Registrarme</a>
-      </nav>
+      </div>
     </header>
+    <!-- subnav con links de seccion, sticky debajo del header -->
+    <nav class="subnav" aria-label="Secciones de la pagina">
+      <a class="subnav-link" href="#hero">Inicio</a>
+      <a class="subnav-link" href="#como-funciona">Cómo funciona</a>
+      <a class="subnav-link" href="#servicios">Servicios</a>
+      <a class="subnav-link" href="#contacto">Contacto</a>
+    </nav>
     <main class="page-main home-main">
       <!-- Hero principal con carrusel de fondo y mensaje centrado. -->
       <section class="home-hero" id="hero">
-        <!-- Imágenes apiladas del carrusel (img1 visible primero). -->
+        <!-- Imagenes apiladas del carrusel (img1 visible primero). -->
         <div class="hero-carousel" aria-hidden="true">
+          <!-- Las cuatro imágenes se toman directamente de la carpeta img. -->
           <img class="hero-carousel-image active" src="/img/img1.png" alt="Persona brindando apoyo comunitario en CuidaRed">
-          <img class="hero-carousel-image" src="/img/img2.png" alt="Acompañamiento de confianza para actividades cotidianas">
-          <img class="hero-carousel-image" src="/img/img3.jpeg" alt="Servicio de ayuda a domicilio con trato cercano">
-          <img class="hero-carousel-image" src="/img/img4.jpg" alt="Red de apoyo vecinal disponible en CuidaRed">
-          <img class="hero-carousel-image" src="/img/img5.png" alt="Prestadores y solicitantes conectando servicios de confianza">
+          <img class="hero-carousel-image" src="/img/img2.jpeg" alt="Acompañamiento de confianza para actividades cotidianas">
+          <img class="hero-carousel-image" src="/img/img3.jpeg" alt="Red de apoyo vecinal disponible en CuidaRed">
+          <img class="hero-carousel-image" src="/img/img4.png" alt="Prestadores y solicitantes conectando servicios de confianza">
         </div>
 
-        <!-- Capa oscura para mejorar el contraste del texto sobre las imágenes. -->
+        <!-- Capa oscura para mejorar el contraste del texto sobre las imagenes. -->
         <div class="hero-overlay" aria-hidden="true"></div>
 
-        <!-- Contenido principal del hero: nombre del proyecto, eslogan y CTA. -->
+        <!-- Contenido principal del hero: eslogan y CTA. -->
         <div class="home-hero-content">
-          <p class="eyebrow">CUIDARED</p>
           <h1 class="page-title home-hero-title">Ayuda de confianza, a un clic</h1>
           <div class="home-hero-actions">
             <a class="btn-primary home-hero-button" href="/auth/registro.html">Comenzar</a>
@@ -78,7 +86,7 @@
         </ol>
       </section>
 
-      <!-- Catálogo principal dividido por tipo de usuario. -->
+      <!-- Catalogo principal dividido por tipo de usuario. -->
       <section class="info-section" id="servicios">
         <div class="section-heading section-heading--center">
           <p class="eyebrow">Servicios populares</p>
@@ -92,23 +100,43 @@
             <div class="service-grid service-grid--home">
               <article class="service-card home-service-card">
                 <div class="service-card-content">
-                  <span class="service-icon" aria-hidden="true">TR</span>
+                  <!-- icono SVG sustituye la abreviacion TR -->
+                  <span class="service-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v2"/>
+                      <circle cx="16" cy="17" r="2"/><circle cx="7" cy="17" r="2"/>
+                      <path d="M14 17H9M3 9h13"/>
+                    </svg>
+                  </span>
                   <h2>Traslado acompanado</h2>
                   <p>Acompana a personas en traslados programados con rutas y horarios claros.</p>
                 </div>
               </article>
               <article class="service-card home-service-card">
                 <div class="service-card-content">
-                  <span class="service-icon" aria-hidden="true">CM</span>
+                  <!-- icono SVG sustituye la abreviacion CM -->
+                  <span class="service-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                  </span>
                   <h2>Compras asistidas</h2>
                   <p>Apoya en compras de supermercado o farmacia y entrega con seguimiento.</p>
                 </div>
               </article>
               <article class="service-card home-service-card">
                 <div class="service-card-content">
-                  <span class="service-icon" aria-hidden="true">AC</span>
-                  <h2>Acompañamiento</h2>
-                  <p>Brinda compañía en actividades del hogar o salidas cotidianas.</p>
+                  <!-- icono SVG sustituye la abreviacion AC -->
+                  <span class="service-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </span>
+                  <h2>Acompanamiento</h2>
+                  <p>Brinda compania en actividades del hogar o salidas cotidianas.</p>
                 </div>
               </article>
             </div>
@@ -119,21 +147,41 @@
             <div class="service-grid service-grid--home">
               <article class="service-card home-service-card">
                 <div class="service-card-content">
-                  <span class="service-icon" aria-hidden="true">MD</span>
+                  <!-- icono SVG sustituye la abreviacion MD -->
+                  <span class="service-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                      <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                  </span>
                   <h2>Mandados urgentes</h2>
                   <p>Solicita recoleccion y entrega de encargos ya pagados o listos para mover.</p>
                 </div>
               </article>
               <article class="service-card home-service-card">
                 <div class="service-card-content">
-                  <span class="service-icon" aria-hidden="true">CT</span>
+                  <!-- icono SVG sustituye la abreviacion CT -->
+                  <span class="service-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </span>
                   <h2>Traslado a citas</h2>
                   <p>Programa transporte para citas medicas, tramites o actividades personales.</p>
                 </div>
               </article>
               <article class="service-card home-service-card">
                 <div class="service-card-content">
-                  <span class="service-icon" aria-hidden="true">AP</span>
+                  <!-- icono SVG sustituye la abreviacion AP -->
+                  <span class="service-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  </span>
                   <h2>Apoyo personalizado</h2>
                   <p>Describe tu necesidad y recibe propuestas de prestadores disponibles.</p>
                 </div>
@@ -172,7 +220,8 @@
       </div>
     </footer>
 
-    <!-- Script del carrusel automático del hero principal. -->
+    <!-- Script del carrusel automatico y modo oscuro persistente. -->
+    <!-- Ruta correcta: Express publica public/ como raíz del sitio. -->
     <script src="/js/script.js"></script>
   </body>
 </html>
