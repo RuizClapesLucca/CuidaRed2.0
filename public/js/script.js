@@ -1,4 +1,7 @@
 (() => {
+  if (window.__cuidaredScriptInitialized) return;
+  window.__cuidaredScriptInitialized = true;
+
   // Lee la preferencia guardada y configura la clase de tema al cargar la página.
   const body = document.body;
   const themeToggleButton = document.getElementById("theme-toggle");
