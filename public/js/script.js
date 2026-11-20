@@ -7,6 +7,9 @@
   if (savedTheme === "dark") {
     body.classList.add("theme-dark");
   }
+  // Sincroniza el esquema nativo del navegador con el tema aplicado.
+  document.documentElement.style.colorScheme =
+    body.classList.contains("theme-dark") ? "dark" : "light";
 
   // Actualiza etiqueta y estados ARIA del botón según el tema actual.
   function syncThemeButton() {
@@ -25,6 +28,8 @@
     body.classList.toggle("theme-dark");
     const isDark = body.classList.contains("theme-dark");
     window.localStorage.setItem("cuidared-theme", isDark ? "dark" : "light");
+    // Actualiza controles nativos (como barras y campos) al cambiar de tema.
+    document.documentElement.style.colorScheme = isDark ? "dark" : "light";
     syncThemeButton();
   }
 
@@ -41,8 +46,8 @@
   const slides = Array.from(hero.querySelectorAll(".hero-carousel-image"));
   if (slides.length === 0) return;
 
-  const minIntervalMs = 5000;
-  const maxIntervalMs = 10000;
+  // El carrusel cambia exactamente cada 5 segundos.
+  const intervalMs = 5000;
   let timerId = null;
 
   // Detecta la imagen activa inicial; si no hay una, activa la primera.
@@ -59,17 +64,12 @@
     slides[currentIndex].classList.add("active");
   }
 
-  // Devuelve un tiempo aleatorio entre 5 y 10 segundos para variar la rotación.
-  function getNextInterval() {
-    return Math.floor(Math.random() * (maxIntervalMs - minIntervalMs + 1)) + minIntervalMs;
-  }
-
-  // Programa el siguiente cambio con un tiempo variable entre 5 y 10 segundos.
+  // Programa el siguiente cambio cada 5 segundos.
   function scheduleNextSlide() {
     timerId = window.setTimeout(() => {
       showSlide(currentIndex + 1);
       scheduleNextSlide();
-    }, getNextInterval());
+    }, intervalMs);
   }
 
   // Inicia la rotación automática.
