@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Datos de la cuenta. El correo y el teléfono se cambian con un NIP de confirmación. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi cuenta | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <header class="site-header site-header--auth">
+      <a class="brand" href="/Modulo1.html">CUIDARED</a>
+    </header>
+    <main class="auth-main">
+      <h1 class="auth-title">Mi cuenta</h1>
+      <section class="auth-card">
+        <p class="form-message form-message--error" id="message" role="alert"></p>
+        <p><strong>Nombre:</strong> <span id="nombre"></span> <span class="field-hint">(no editable)</span></p>
+        <p><strong>Fecha de nacimiento:</strong> <span id="nacimiento"></span> <span class="field-hint">(no editable)</span></p>
+        <p><strong>Correo:</strong> <span id="correo"></span></p>
+        <p><strong>Teléfono:</strong> terminado en <span id="telefono"></span></p>
+      </section>
+      <section class="auth-card">
+        <h2 class="field-label">Cambiar correo o teléfono</h2>
+        <form id="request-form">
+          <div class="field">
+            <label class="field-label" for="tipo">Dato a cambiar</label>
+            <select class="field-input" id="tipo" name="tipo" required>
+              <option value="correo">Correo electrónico</option>
+              <option value="telefono">Teléfono</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="valor">Nuevo valor</label>
+            <input class="field-input" id="valor" name="valor" type="text" required maxlength="254">
+            <p class="field-hint">Para el teléfono, escribe 10 dígitos. Enviaremos el NIP a tu correo actual.</p>
+          </div>
+          <div class="field">
+            <label class="field-label" for="password">Contraseña actual</label>
+            <input class="field-input" id="password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="current-password">
+          </div>
+          <div class="form-actions"><button class="btn-primary" type="submit">Enviar NIP</button></div>
+        </form>
+        <form id="confirm-form" hidden>
+          <div class="field">
+            <label class="field-label" for="nip">NIP de confirmación</label>
+            <input class="field-input" id="nip" name="nip" type="text" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required autocomplete="one-time-code">
+          </div>
+          <div class="form-actions"><button class="btn-primary" type="submit">Confirmar cambio</button></div>
+        </form>
+      </section>
+    </main>
+    <script src="/js/common-form.js"></script>
+    <script src="/js/cuenta-editar.js"></script>
+  </body>
+</html>

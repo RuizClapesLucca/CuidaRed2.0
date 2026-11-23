@@ -14,6 +14,9 @@
       <a class="brand" href="/prestador/servicios.html">CUIDARED</a>
       <nav class="header-nav">
         <a class="header-link" href="/prestador/registrar-vehiculo.html">Registrar vehículo</a>
+        <a class="header-link" href="/cuenta/editar.html">Mi cuenta</a>
+        <a class="header-link" href="/reportar-error.html">Reportar error</a>
+        <button class="header-link header-link--button" type="button" id="delete-account-button">Borrar cuenta</button>
         <a class="header-button" href="/api/logout">Cerrar sesión</a>
       </nav>
     </header>
@@ -27,6 +30,8 @@
       <div class="search-bar">
         <label class="sr-only" for="search">Buscar solicitud</label>
         <input class="field-input" id="search" type="search" placeholder="Buscar por categoría, descripción o municipio">
+        <select class="field-input" id="filter-category" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select>
+        <select class="field-input" id="filter-zone" aria-label="Filtrar por alcaldía"><option value="">Todas las alcaldías</option></select>
       </div>
       <p class="form-message form-message--error" id="error-message" role="alert"></p>
       <section class="request-tabs">
@@ -53,5 +58,6 @@
     <!-- Lógica externa para consultar y filtrar solicitudes. -->
     <script src="/js/api.js"></script>
     <script src="/js/prestador/servicios.js"></script>
+    <script src="/js/cuenta.js"></script>
   </body>
 </html>

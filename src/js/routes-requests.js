@@ -1,6 +1,9 @@
 // Rutas del ciclo de vida de solicitudes: crear, consultar, editar, aceptar y borrar.
+const bcrypt = require("bcrypt");
 const { requireSession, requireRole } = require("./middleware");
-const { decryptSensitiveValue } = require("./config");
+const { sendMail } = require("./email");
+const { decryptSensitiveValue, encryptSensitiveValue } = require("./config");
+const { closeExpiredRequests, expirePostulations } = require("./services-lifecycle");
 
 // Comprueba formato válido y que la fecha/hora todavía no hayan pasado.
 function isFutureSchedule(date, time) {
@@ -68,6 +71,11 @@ function readStoredText(value) {
   }
 }
 
+// Cifra un texto de domicilio antes de guardarlo. Los campos vacíos quedan en NULL.
+function protectText(value) {
+  return value ? encryptSensitiveValue(String(value)) : null;
+}
+
 function normalizeCategoryName(value) {
   return String(value || "")
     .normalize("NFD")
@@ -78,8 +86,8 @@ function normalizeCategoryName(value) {
 
 const START_GRACE_PERIOD_MINUTES = 10;
 
-// Elimina servicios aceptados que nunca comenzaron después de la ventana de
-// gracia. Se borran en orden para respetar las relaciones de la BD.
+// Cancela (no borra) servicios aceptados que nunca comenzaron después de la ventana
+// de gracia. Se conserva el registro para la auditoría y las relaciones de la BD.
 async function removeExpiredUnstartedServices(pool) {
   const connection = await pool.getConnection();
   try {
@@ -95,9 +103,10 @@ async function removeExpiredUnstartedServices(pool) {
        FOR UPDATE`
     );
     for (const service of expiredServices) {
-      await connection.execute("DELETE FROM servicio WHERE id_peticion = ?", [service.id_peticion]);
-      await connection.execute("DELETE FROM postulacion WHERE id_postulacion = ?", [service.id_postulacion]);
-      await connection.execute("DELETE FROM peticion WHERE id_peticion = ?", [service.id_peticion]);
+      await connection.execute(
+        "UPDATE peticion SET id_estado_peticion = 4, fecha_cancelacion = (NOW() AT TIME ZONE 'UTC') WHERE id_peticion = ?",
+        [service.id_peticion]
+      );
     }
     await connection.commit();
   } catch (error) {
@@ -322,14 +331,14 @@ function registerRequestRoutes(app, pool) {
         [
           request.session.user.id, numericCategoryId, normalizedSubcategory, normalizedDescription,
           zones[0].id_zona, primaryAddress.colony,
-          primaryAddress.street,
-          primaryAddress.exteriorNumber,
-          primaryAddress.interiorNumber || null,
+          protectText(primaryAddress.street),
+          protectText(primaryAddress.exteriorNumber),
+          protectText(primaryAddress.interiorNumber),
           primaryAddress.postalCode,
-          formatAddress(primaryAddress),
-          needsRoute ? formatAddress(originAddress) : null,
-          needsRoute ? formatAddress(destinationAddress) : null,
-          needsShoppingAddress ? formatAddress(shoppingAddress) : null,
+          protectText(formatAddress(primaryAddress)),
+          needsRoute ? protectText(formatAddress(originAddress)) : null,
+          needsRoute ? protectText(formatAddress(destinationAddress)) : null,
+          needsShoppingAddress ? protectText(formatAddress(shoppingAddress)) : null,
           numericAmount, normalizedRateType, scheduledDate, scheduledTime
         ]
       );
@@ -347,7 +356,9 @@ function registerRequestRoutes(app, pool) {
   // Lista solicitudes pendientes y vigentes según el rol de la sesión.
   app.get("/api/solicitudes", requireSession, async (request, response) => {
     try {
-      const params = [];
+      await expirePostulations(pool);
+      // La primera posición es el id del prestador (postulación propia); el solicitante no la usa.
+      const params = [request.session.user.id];
       let where = "p.id_estado_peticion = 1";
       if (request.session.user.role === "solicitante") {
         where += " AND p.id_buscador = ?";
@@ -356,6 +367,10 @@ function registerRequestRoutes(app, pool) {
       const [requests] = await pool.execute(
         `SELECT p.id_peticion AS id, p.descripcion, p.colonia, p.monto,
                 p.tipo_tarifa, p.subcategoria,
+                (SELECT po.id_postulacion FROM postulacion po
+                 JOIN perfil_prestador pp ON pp.id_perfil = po.id_perfil
+                 WHERE po.id_peticion = p.id_peticion AND pp.id_usuario = ? AND po.id_estado_postulacion = 1
+                 LIMIT 1) AS mi_postulacion,
                 TO_CHAR(p.fecha_programada, 'YYYY-MM-DD') AS fecha,
                 LEFT(p.hora_programada::text, 5) AS hora,
                 c.nombre AS categoria, z.estado AS estado_zona, z.municipio,
@@ -448,6 +463,7 @@ function registerRequestRoutes(app, pool) {
   app.get("/api/solicitudes/aceptadas", requireSession, async (request, response) => {
     try {
       await removeExpiredUnstartedServices(pool);
+      await closeExpiredRequests(pool);
       const statusId = request.query.estado === "finalizadas" ? 3 : 2;
       const params = [statusId, request.session.user.id];
       const roleFilter = request.session.user.role === "prestador"
@@ -597,57 +613,6 @@ function registerRequestRoutes(app, pool) {
     }
   });
 
-  // Finalizar cambia la solicitud a Terminado y habilita la calificación del solicitante.
-  app.post("/api/servicios/:id/finalizar", requireSession, requireRole("prestador"), async (request, response) => {
-    const serviceId = Number(request.params.id);
-    if (!Number.isInteger(serviceId) || serviceId <= 0) {
-      return response.status(400).json({ message: "El servicio no es válido." });
-    }
-    const connection = await pool.getConnection();
-    try {
-      await connection.beginTransaction();
-      const service = await getProviderService(connection, serviceId, request.session.user.id);
-      if (!service) {
-        await connection.rollback();
-        return response.status(404).json({ message: "No se encontró el servicio." });
-      }
-      if (service.id_estado_peticion !== 2 || !service.confirmado_prestador) {
-        await connection.rollback();
-        return response.status(409).json({ message: "Primero debes iniciar el servicio." });
-      }
-      await connection.execute(
-        `UPDATE servicio
-         SET fecha_terminado = NOW(), fecha_solicitud_cierre = NOW()
-         WHERE id_servicio = ?`,
-        [serviceId]
-      );
-      await connection.execute(
-        "UPDATE peticion SET id_estado_peticion = 3 WHERE id_peticion = ?",
-        [service.id_peticion]
-      );
-      await connection.execute(
-        `INSERT INTO reputacion (id_usuario, servicios_terminados)
-         VALUES (
-           (SELECT pp2.id_usuario
-            FROM postulacion po2
-            JOIN perfil_prestador pp2 ON pp2.id_perfil = po2.id_perfil
-            WHERE po2.id_postulacion = ?),
-           1
-         )
-         ON CONFLICT (id_usuario) DO UPDATE SET servicios_terminados = reputacion.servicios_terminados + 1`,
-        [service.id_postulacion]
-      );
-      await connection.commit();
-      return response.json({ message: "Servicio finalizado." });
-    } catch (error) {
-      await connection.rollback();
-      console.error("Error al finalizar servicio:", error);
-      return response.status(500).json({ message: "No fue posible finalizar el servicio." });
-    } finally {
-      connection.release();
-    }
-  });
-
   // Cambia solo fecha y hora de una solicitud pendiente propiedad del solicitante.
   // La condición id_estado_peticion = 1 impide editar una solicitud aceptada.
   app.patch("/api/solicitudes/:id/horario", requireSession, requireRole("solicitante"), async (request, response) => {
@@ -673,70 +638,6 @@ function registerRequestRoutes(app, pool) {
     }
   });
 
-  // Acepta una petición disponible y crea postulación y servicio en una
-  // transacción; el bloqueo de la fila evita que dos prestadores acepten la misma.
-  app.post("/api/solicitudes/:id/aceptar", requireSession, requireRole("prestador"), async (request, response) => {
-    const requestId = Number(request.params.id);
-    if (!Number.isInteger(requestId) || requestId <= 0) {
-      return response.status(400).json({ message: "La solicitud no es válida." });
-    }
-    const connection = await pool.getConnection();
-    try {
-      await connection.beginTransaction();
-      const [petitions] = await connection.execute(
-        `SELECT p.id_peticion, p.descripcion, p.monto, c.nombre AS categoria
-         FROM peticion p
-         JOIN cat_categoria c ON c.id_categoria = p.id_categoria
-         WHERE p.id_peticion = ? AND p.id_estado_peticion = 1
-           AND (p.fecha_programada + p.hora_programada) > (NOW() AT TIME ZONE 'UTC') FOR UPDATE`,
-        [requestId]
-      );
-      if (petitions.length === 0) {
-        await connection.rollback();
-        return response.status(409).json({ message: "La solicitud ya no está disponible." });
-      }
-      const petition = petitions[0];
-      await connection.execute(
-        `INSERT INTO perfil_prestador (id_usuario, descripcion, tarifa_sugerida)
-         VALUES (?, ?, ?) ON CONFLICT (id_usuario) DO NOTHING`,
-        [request.session.user.id, petition.descripcion, petition.monto]
-      );
-      const [profiles] = await connection.execute(
-        "SELECT id_perfil, cuenta_con_coche FROM perfil_prestador WHERE id_usuario = ? AND activo = TRUE",
-        [request.session.user.id]
-      );
-      if (profiles.length === 0) {
-        await connection.rollback();
-        return response.status(400).json({ message: "Tu perfil de prestador no está activo." });
-      }
-      if ((normalizeCategoryName(petition.categoria) === "transporte"
-        || normalizeCategoryName(petition.categoria).includes("traslado")) && !profiles[0].cuenta_con_coche) {
-        await connection.rollback();
-        return response.status(403).json({ message: "Necesitas registrar un coche para aceptar solicitudes de transporte." });
-      }
-      const [application] = await connection.execute(
-        "INSERT INTO postulacion (id_peticion, id_perfil, mensaje) VALUES (?, ?, ?)",
-        [requestId, profiles[0].id_perfil, "Solicitud aceptada por el prestador."]
-      );
-      await connection.execute(
-        "INSERT INTO servicio (id_peticion, id_postulacion) VALUES (?, ?)",
-        [requestId, application.insertId]
-      );
-      await connection.execute(
-        "UPDATE peticion SET id_estado_peticion = 2 WHERE id_peticion = ?",
-        [requestId]
-      );
-      await connection.commit();
-      return response.json({ message: "Solicitud aceptada correctamente." });
-    } catch (error) {
-      await connection.rollback();
-      console.error("Error al aceptar solicitud:", error);
-      return response.status(500).json({ message: "No fue posible aceptar la solicitud." });
-    } finally {
-      connection.release();
-    }
-  });
-
   // El solicitante puede borrar solicitudes propias pendientes o aceptadas.
   // En las aceptadas se eliminan primero las relaciones dependientes para
   // respetar las claves foráneas y hacer que desaparezcan para ambos roles.
@@ -749,7 +650,9 @@ function registerRequestRoutes(app, pool) {
     try {
       await connection.beginTransaction();
       const [petitions] = await connection.execute(
-        `SELECT id_estado_peticion FROM peticion
+        `SELECT id_estado_peticion,
+                ((fecha_programada + hora_programada) < ((NOW() AT TIME ZONE 'UTC') + INTERVAL '2 hours')) AS dentro_de_dos_horas
+         FROM peticion
          WHERE id_peticion = ? AND id_buscador = ? AND id_estado_peticion IN (1, 2)
          FOR UPDATE`,
         [requestId, request.session.user.id]
@@ -758,10 +661,77 @@ function registerRequestRoutes(app, pool) {
         await connection.rollback();
         return response.status(409).json({ message: "Solo puedes borrar solicitudes propias pendientes o aceptadas." });
       }
-      await connection.execute("DELETE FROM servicio WHERE id_peticion = ?", [requestId]);
-      await connection.execute("DELETE FROM postulacion WHERE id_peticion = ?", [requestId]);
-      await connection.execute("DELETE FROM peticion WHERE id_peticion = ?", [requestId]);
+      // Cancelar exige la contraseña. Un servicio aceptado se cancela solo con más de 2 horas
+      // de anticipación y con una explicación; si falta menos, debe levantarse una incidencia.
+      const body = request.body || {};
+      const password = body.password;
+      if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+        await connection.rollback();
+        return response.status(400).json({ message: "Escribe tu contraseña para cancelar." });
+      }
+      const [accounts] = await connection.execute(
+        "SELECT password_hash FROM usuario WHERE id_usuario = ?",
+        [request.session.user.id]
+      );
+      if (!accounts[0] || !(await bcrypt.compare(password, accounts[0].password_hash))) {
+        await connection.rollback();
+        return response.status(403).json({ message: "Contraseña incorrecta. Cancelación no procesada." });
+      }
+      const wasAccepted = Number(petitions[0].id_estado_peticion) === 2;
+      if (wasAccepted && petitions[0].dentro_de_dos_horas) {
+        await connection.rollback();
+        return response.status(409).json({
+          message: "No se puede cancelar un servicio programado dentro de las próximas 2 horas. Debe levantar una incidencia."
+        });
+      }
+      const explanation = String(body.comentario || "").trim();
+      if (wasAccepted && (explanation.length < 10 || explanation.length > 250)) {
+        await connection.rollback();
+        return response.status(400).json({ message: "Explica el motivo de la cancelación (10 a 250 caracteres)." });
+      }
+      let providerEmail = null;
+      if (wasAccepted) {
+        const [providers] = await connection.execute(
+          `SELECT u.correo FROM servicio s
+           JOIN postulacion po ON po.id_postulacion = s.id_postulacion
+           JOIN perfil_prestador pp ON pp.id_perfil = po.id_perfil
+           JOIN usuario u ON u.id_usuario = pp.id_usuario
+           WHERE s.id_peticion = ?`,
+          [requestId]
+        );
+        providerEmail = providers[0] ? providers[0].correo : null;
+      }
+      // Se conserva el registro: la solicitud pasa a Cancelado y el motivo queda guardado.
+      const reasonId = Number(request.body.id_motivo || 1);
+      const comment = String(request.body.comentario || "").trim().slice(0, 300);
+      const [reasons] = await connection.execute(
+        "SELECT id_motivo FROM cat_motivo_cancelacion WHERE id_motivo = ?",
+        [reasonId]
+      );
+      if (reasons.length === 0) {
+        await connection.rollback();
+        return response.status(400).json({ message: "Selecciona un motivo de cancelación válido." });
+      }
+      await connection.execute(
+        "UPDATE peticion SET id_estado_peticion = 4, fecha_cancelacion = (NOW() AT TIME ZONE 'UTC') WHERE id_peticion = ?",
+        [requestId]
+      );
+      await connection.execute(
+        "UPDATE postulacion SET id_estado_postulacion = 5, fecha_decision = (NOW() AT TIME ZONE 'UTC') WHERE id_peticion = ? AND id_estado_postulacion = 1",
+        [requestId]
+      );
+      await connection.execute(
+        "INSERT INTO cancelacion (id_peticion, id_usuario, id_motivo, comentario) VALUES (?, ?, ?, ?)",
+        [requestId, request.session.user.id, reasonId, comment || null]
+      );
       await connection.commit();
+      if (providerEmail) {
+        sendMail({
+          to: providerEmail,
+          subject: "Una solicitud aceptada fue cancelada",
+          text: `El solicitante canceló una solicitud que tenías aceptada. Motivo: ${explanation}`
+        });
+      }
       return response.status(204).send();
     } catch (error) {
       await connection.rollback();

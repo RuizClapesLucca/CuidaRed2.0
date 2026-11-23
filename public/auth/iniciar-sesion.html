@@ -24,15 +24,16 @@
         <form id="login-form" action="/api/login" method="post">
           <div class="field">
             <label class="field-label" for="correo">Correo electrónico o teléfono</label>
-            <input class="field-input" id="correo" name="correo" type="text" required autocomplete="username" placeholder="correo@ejemplo.com o 10 dígitos">
+            <input class="field-input" id="correo" name="correo" type="text" required maxlength="254" autocomplete="username" placeholder="correo@ejemplo.com o 10 dígitos">
           </div>
           <div class="field">
             <label class="field-label" for="password">Contraseña</label>
-            <input class="field-input" id="password" name="password" type="password" required minlength="8" autocomplete="current-password">
+            <input class="field-input" id="password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="current-password">
           </div>
           <div class="form-actions">
             <button class="btn-primary" type="submit">Iniciar sesión</button>
             <a class="auth-link" href="/auth/registro.html">Crear una cuenta</a>
+            <a class="auth-link" href="/auth/recuperar.html">¿Olvidaste tu contraseña?</a>
           </div>
         </form>
       </section>

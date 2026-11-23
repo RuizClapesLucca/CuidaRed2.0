@@ -38,7 +38,11 @@ function renderMapAddress(label, address) {
  */
 function renderRequests() {
   const query = search.value.trim().toLowerCase();
+  const category = document.getElementById("filter-category").value;
+  const zone = document.getElementById("filter-zone").value;
   const visible = requests.filter((item) =>
+    (!category || item.categoria === category) &&
+    (!zone || item.municipio === zone) &&
     [item.categoria, item.descripcion, item.municipio].some((value) =>
       String(value).toLowerCase().includes(query)
     )
@@ -50,7 +54,9 @@ function renderRequests() {
         <p class="request-meta">${escapeHtml(item.municipio)} · ${escapeHtml(item.fecha)} · ${escapeHtml(item.hora)}</p>
         <div class="request-details" hidden></div>
         <button class="btn-secondary details-request" type="button" data-id="${item.id}">Detalles</button>
-        <button class="btn-primary accept-request" type="button" data-id="${item.id}">Aceptar solicitud</button>
+        ${item.mi_postulacion
+          ? `<button class="btn-secondary withdraw-postulation" type="button" data-id="${item.mi_postulacion}">Retirar postulación</button>`
+          : `<button class="btn-primary accept-request" type="button" data-id="${item.id}">Postularme</button>`}
       </article>`).join("")
     : "<p>No hay solicitudes disponibles con ese criterio.</p>";
 }
@@ -67,6 +73,7 @@ async function loadRequests() {
     requestJson("/api/solicitudes/aceptadas?estado=finalizadas")
   ]);
   requests = data.requests.map(localizeSchedule);
+  fillFilterOptions();
   renderRequests();
   renderAcceptedRequests(acceptedData.requests.map(localizeSchedule));
   renderFinishedRequests(finishedData.requests.map(localizeSchedule));
@@ -115,7 +122,8 @@ function renderAcceptedRequests(accepted) {
           <span class="status-pill status-pill--progress">${item.iniciado ? "En curso" : "Por empezar"}</span>
           <button class="btn-secondary accepted-details-button" type="button" data-id="${item.id}">Detalles</button>
           <button class="btn-secondary start-service" type="button" data-id="${item.servicio_id}" ${item.iniciado || !canStart ? "disabled" : ""}>Iniciar</button>
-          <button class="btn-primary finish-service" type="button" data-id="${item.servicio_id}" ${item.iniciado ? "" : "disabled"}>Finalizar</button>
+          <button class="btn-primary finish-service" type="button" data-id="${item.servicio_id}" ${item.iniciado ? "" : "disabled"}>Marcar como terminado</button>
+          ${item.iniciado ? `<a class="btn-secondary" href="/reportar.html?servicio=${item.servicio_id}&volver=/prestador/servicios.html">Levantar incidencia</a>` : ""}
         </div>
       </article>`;
     }).join("")
@@ -132,6 +140,7 @@ function renderFinishedRequests(finished) {
         <div class="request-details accepted-details" hidden></div></div>
         <div class="card-actions">
           <span class="status-pill status-pill--success">Finalizada</span>
+          <a class="btn-secondary" href="/reportar.html?servicio=${item.servicio_id}&volver=/prestador/servicios.html">Levantar incidencia</a>
           <button class="btn-secondary accepted-details-button" type="button" data-id="${item.id}">Detalles</button>
           ${item.calificacion
             ? `<span class="received-rating">${"★".repeat(item.calificacion.estrellas)}${"☆".repeat(5 - item.calificacion.estrellas)} (${item.calificacion.estrellas}/5)</span>`
@@ -243,11 +252,18 @@ requestList.addEventListener("click", async (event) => {
   }
   const button = event.target.closest(".accept-request");
   if (!button) return;
-  // El botón se bloquea mientras termina la transacción para evitar dos
-  // aceptaciones simultáneas de la misma solicitud.
+  // Pide la tarifa y un mensaje opcional. El servidor vuelve a validar ambos.
+  const fee = window.prompt("Tarifa que propones (MXN, entre 50 y 5,000):");
+  if (fee === null) return;
+  const message = window.prompt("Mensaje para el solicitante (opcional, máximo 250 caracteres):") || "";
   button.disabled = true;
   try {
-    await requestJson(`/api/solicitudes/${button.dataset.id}/aceptar`, { method: "POST" });
+    await requestJson(`/api/solicitudes/${button.dataset.id}/postular`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tarifa: Number(fee), mensaje: message })
+    });
+    document.getElementById("error-message").textContent = "";
   } catch (error) {
     document.getElementById("error-message").textContent = error.message;
     button.disabled = false;
@@ -273,8 +289,35 @@ requestList.addEventListener("click", async (event) => {
   });
 });
 
-// Vuelve a renderizar cuando cambia el criterio de búsqueda.
+// Vuelve a renderizar cuando cambia el criterio de búsqueda o los filtros.
 search.addEventListener("input", renderRequests);
+document.getElementById("filter-category").addEventListener("change", renderRequests);
+document.getElementById("filter-zone").addEventListener("change", renderRequests);
+
+/**
+ * Llena los selectores de categoría y alcaldía con los valores presentes en las
+ * solicitudes cargadas, conservando la opción elegida si todavía existe.
+ */
+function fillFilterOptions() {
+  const fill = (id, values, placeholder) => {
+    const select = document.getElementById(id);
+    const previous = select.value;
+    select.innerHTML = "";
+    const first = document.createElement("option");
+    first.value = "";
+    first.textContent = placeholder;
+    select.appendChild(first);
+    [...new Set(values.filter(Boolean))].sort().forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      select.appendChild(option);
+    });
+    select.value = [...select.options].some((option) => option.value === previous) ? previous : "";
+  };
+  fill("filter-category", requests.map((item) => item.categoria), "Todas las categorías");
+  fill("filter-zone", requests.map((item) => item.municipio), "Todas las alcaldías");
+}
 /**
  * Inicializa el módulo del prestador y muestra un mensaje si la API no responde.
  */
@@ -297,4 +340,19 @@ document.querySelectorAll(".tab-button").forEach((button) => {
     button.classList.add("is-active");
     document.getElementById(button.dataset.tab).classList.add("is-active");
   });
+});
+
+// Retira una postulación propia que todavía está Enviada.
+requestList.addEventListener("click", async (event) => {
+  const withdrawButton = event.target.closest(".withdraw-postulation");
+  if (!withdrawButton) return;
+  if (!window.confirm("¿Quieres retirar tu postulación a esta solicitud?")) return;
+  withdrawButton.disabled = true;
+  try {
+    await requestJson(`/api/postulaciones/${withdrawButton.dataset.id}/retirar`, { method: "POST" });
+    await loadRequests();
+  } catch (error) {
+    document.getElementById("error-message").textContent = error.message;
+    withdrawButton.disabled = false;
+  }
 });

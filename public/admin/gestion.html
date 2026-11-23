@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Gestión de administradores, métricas y reportes técnicos. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestión | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/admin/usuarios.html">CUIDARED</a>
+      <nav class="header-nav">
+        <a class="header-link" href="/admin/usuarios.html">Usuarios</a>
+        <a class="header-link" href="/admin/reportes.html">Incidencias</a>
+        <a class="header-button" href="/api/logout">Cerrar sesión</a>
+      </nav>
+    </header>
+    <main class="page-main">
+      <section class="page-heading page-heading--left">
+        <p class="eyebrow">Administración</p>
+        <h1 class="page-title">Gestión</h1>
+      </section>
+      <p class="form-message form-message--error" id="message" role="alert"></p>
+
+      <section class="request-form-card">
+        <h2 class="field-label">Administradores</h2>
+        <div id="admin-list"></div>
+        <div id="action-panel" hidden>
+          <form id="action-form">
+            <p id="action-title" class="field-label"></p>
+            <div class="field"><label class="field-label" for="action-reason">Motivo (10 a 250 caracteres)</label>
+              <textarea class="field-input field-textarea" id="action-reason" minlength="10" maxlength="250" required></textarea></div>
+            <div class="field"><label class="field-label" for="action-totp">Código de tu app TOTP</label>
+              <input class="field-input" id="action-totp" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></div>
+            <div class="field" id="action-reset-field" hidden>
+              <label><input type="checkbox" id="action-reset"> Generar también una contraseña temporal</label>
+            </div>
+            <div class="form-actions"><button class="btn-primary" type="submit">Confirmar</button>
+              <button class="auth-link" type="button" id="action-cancel">Cancelar</button></div>
+          </form>
+        </div>
+      </section>
+
+      <section class="request-form-card" id="create-section" hidden>
+        <h2 class="field-label">Agregar administrador</h2>
+        <form id="create-form">
+          <div class="field"><label class="field-label" for="new-name">Nombre completo</label>
+            <input class="field-input" id="new-name" maxlength="120" required></div>
+          <div class="field"><label class="field-label" for="new-email">Correo institucional</label>
+            <input class="field-input" id="new-email" type="email" maxlength="254" required></div>
+          <div class="field"><label class="field-label" for="new-phone">Teléfono (10 dígitos)</label>
+            <input class="field-input" id="new-phone" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" required></div>
+          <div class="field"><label class="field-label" for="new-birth">Fecha de nacimiento</label>
+            <input class="field-input" id="new-birth" type="date" required></div>
+          <div class="field"><label class="field-label" for="new-totp">Tu código TOTP</label>
+            <input class="field-input" id="new-totp" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required></div>
+          <div class="form-actions"><button class="btn-primary" type="submit">Crear administrador</button></div>
+        </form>
+        <div id="create-result" class="form-message" hidden></div>
+      </section>
+
+      <section class="request-form-card">
+        <h2 class="field-label">Métricas</h2>
+        <form id="metrics-form" class="search-bar">
+          <input class="field-input" id="m-desde" type="date" aria-label="Desde">
+          <input class="field-input" id="m-hasta" type="date" aria-label="Hasta">
+          <input class="field-input" id="m-municipio" placeholder="Municipio (opcional)" maxlength="80">
+          <button class="btn-secondary" type="submit">Generar</button>
+        </form>
+        <div id="metrics-result"></div>
+      </section>
+
+      <section class="request-form-card">
+        <h2 class="field-label">Reportes técnicos</h2>
+        <form id="tickets-form" class="search-bar">
+          <input class="field-input" id="t-desde" type="date" aria-label="Desde">
+          <input class="field-input" id="t-hasta" type="date" aria-label="Hasta">
+          <select class="field-input" id="t-modulo">
+            <option value="">Todos los módulos</option>
+            <option value="AUTENTICACION">Inicio de sesión y cuenta</option>
+            <option value="REGISTRO">Registro</option>
+            <option value="PETICIONES">Solicitudes</option>
+            <option value="PRESTADORES">Prestadores</option>
+            <option value="SERVICIOS">Servicios</option>
+            <option value="CALIFICACIONES">Calificaciones</option>
+            <option value="REPORTES">Incidencias</option>
+            <option value="OTRO">Otro</option>
+          </select>
+          <button class="btn-secondary" type="submit">Buscar</button>
+        </form>
+        <div id="tickets-result"></div>
+      </section>
+    </main>
+    <script src="/js/common-form.js"></script>
+    <script src="/js/admin/gestion.js"></script>
+  </body>
+</html>

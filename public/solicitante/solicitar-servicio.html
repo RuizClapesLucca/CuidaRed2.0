@@ -12,7 +12,12 @@
     <!-- Encabezado con identidad del sitio y cierre de sesión. -->
     <header class="site-header">
       <a class="brand" href="/solicitante/solicitar-servicio.html">CUIDARED</a>
-      <nav class="header-nav"><a class="header-button" href="/api/logout">Cerrar sesión</a></nav>
+      <nav class="header-nav">
+        <a class="header-link" href="/cuenta/editar.html">Mi cuenta</a>
+        <a class="header-link" href="/reportar-error.html">Reportar error</a>
+        <button class="header-link header-link--button" type="button" id="delete-account-button">Borrar cuenta</button>
+        <a class="header-button" href="/api/logout">Cerrar sesión</a>
+      </nav>
     </header>
     <main class="page-main page-main--narrow">
       <section class="page-heading page-heading--left">
@@ -138,5 +143,6 @@
     <!-- Lógica externa para cargar categorías, publicar y listar solicitudes. -->
     <script src="/js/api.js"></script>
     <script src="/js/prestador/solicitar-servicio.js"></script>
+    <script src="/js/cuenta.js"></script>
   </body>
 </html>

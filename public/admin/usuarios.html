@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos y estilos del módulo de administración. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Administrar usuarios | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <!-- Encabezado con borrado de cuenta propia y cierre de sesión. -->
+    <header class="site-header">
+      <a class="brand" href="/admin/usuarios.html">CUIDARED</a>
+      <nav class="header-nav">
+        <a class="header-link" href="/admin/reportes.html">Incidencias</a>
+        <a class="header-link" href="/admin/gestion.html">Gestión</a>
+        <a class="header-link" href="/cuenta/editar.html">Mi cuenta</a>
+        <button class="header-link header-link--button" type="button" id="delete-account-button">Borrar cuenta</button>
+        <a class="header-button" href="/api/logout">Cerrar sesión</a>
+      </nav>
+    </header>
+    <main class="page-main">
+      <section class="page-heading page-heading--left">
+        <p class="eyebrow">Módulo del administrador</p>
+        <h1 class="page-title">Cuentas de usuarios</h1>
+        <p class="page-subtitle">Desactiva cuentas de solicitantes y prestadores. La cuenta no se elimina: queda inhabilitada y registrada.</p>
+      </section>
+      <div class="search-bar">
+        <label class="sr-only" for="search">Buscar usuario</label>
+        <input class="field-input" id="search" type="search" maxlength="80" placeholder="Buscar por nombre o correo">
+      </div>
+      <p class="form-message form-message--error" id="error-message" role="alert"></p>
+      <p class="form-message form-message--success" id="success-message" role="status"></p>
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr><th>Nombre</th><th>Correo</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="user-list"></tbody>
+        </table>
+      </div>
+      <div class="form-actions form-actions--row">
+        <button class="btn-ghost" type="button" id="previous-page">Anterior</button>
+        <span id="page-label"></span>
+        <button class="btn-ghost" type="button" id="next-page">Siguiente</button>
+      </div>
+    </main>
+
+    <!-- Ventana para capturar el motivo antes de desactivar una cuenta. -->
+    <dialog class="account-dialog" id="deactivate-dialog">
+      <form id="deactivate-form" novalidate>
+        <h2 class="account-dialog__title">Desactivar cuenta</h2>
+        <p class="account-dialog__text" id="deactivate-target"></p>
+        <p class="form-message form-message--error" id="deactivate-error" role="alert"></p>
+        <div class="field">
+          <label class="field-label" for="deactivate-reason">Motivo</label>
+          <textarea class="field-input field-textarea" id="deactivate-reason" required minlength="10" maxlength="250" placeholder="Explica por qué se desactiva la cuenta"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn-danger" type="submit" id="deactivate-submit">Desactivar cuenta</button>
+          <button class="btn-ghost" type="button" id="deactivate-cancel">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/cuenta.js"></script>
+    <script src="/js/admin/usuarios.js"></script>
+  </body>
+</html>
