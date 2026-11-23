@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Panel de incidencias del administrador: revisar evidencias y resolver reportes. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Incidencias | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/admin/usuarios.html">CUIDARED</a>
+      <nav class="header-nav">
+        <a class="header-link" href="/admin/usuarios.html">Usuarios</a>
+        <a class="header-link" href="/admin/gestion.html">Gestión</a>
+        <a class="header-button" href="/api/logout">Cerrar sesión</a>
+      </nav>
+    </header>
+    <main class="page-main">
+      <section class="page-heading page-heading--left">
+        <p class="eyebrow">Administración</p>
+        <h1 class="page-title">Incidencias</h1>
+      </section>
+      <form id="filter-form" class="search-bar">
+        <select class="field-input" id="estado" name="estado">
+          <option value="1">Pendientes</option>
+          <option value="2">En revisión</option>
+          <option value="3">Resueltos</option>
+          <option value="4">Desestimados</option>
+          <option value="todos">Todos</option>
+        </select>
+        <input class="field-input" id="desde" name="desde" type="date" aria-label="Desde">
+        <input class="field-input" id="hasta" name="hasta" type="date" aria-label="Hasta">
+        <button class="btn-secondary" type="submit">Buscar</button>
+      </form>
+      <p class="form-message form-message--error" id="message" role="alert"></p>
+      <section id="report-list"></section>
+      <section id="report-detail" hidden></section>
+    </main>
+    <script src="/js/common-form.js"></script>
+    <script src="/js/admin/reportes.js"></script>
+  </body>
+</html>

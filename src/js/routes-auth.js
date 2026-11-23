@@ -1,24 +1,64 @@
 // Rutas de cuentas: registro, inicio/cierre de sesión y confirmación de registro.
 const bcrypt = require("bcrypt");
-const { redirectWithMessage, encryptSensitiveValue, hashPhone } = require("./config");
-const { requireRole } = require("./middleware");
+const { redirectWithMessage, encryptSensitiveValue, hashPhone, admin2faEnabled } = require("./config");
+const { requireRole, createRateLimiter } = require("./middleware");
+const { sendRegistrationCode } = require("./codes");
+const { restoreIfSuspensionEnded, STATE_SUSPENDED } = require("./sanciones");
+const { sendMail } = require("./email");
+const { reactivateAccount, expireDeletedAccount, DELETE_GRACE_DAYS, STATE_DELETED } = require("./routes-account");
 
-// Verifica que la persona tenga por lo menos 18 años.
+// Reglas del bloqueo temporal por intentos fallidos de inicio de sesión.
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_LOCK_MINUTES = 15;
+const STATE_PENDING = 1;
+const STATE_ACTIVE = 2;
+
+// Hash de relleno: se compara cuando el usuario no existe para que la respuesta
+// tarde lo mismo y no se pueda adivinar qué correos están registrados.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("relleno-sin-uso", 12);
+
+// Limitan los intentos por IP en los formularios que no requieren sesión.
+const loginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: "Demasiados intentos. Espera unos minutos para continuar.",
+  redirectPage: "auth/iniciar-sesion.html"
+});
+const registerLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 15,
+  message: "Demasiados registros desde esta conexión. Intenta más tarde.",
+  redirectPage: "auth/registro.html"
+});
+
+// Verifica el formato AAAA-MM-DD, que la fecha exista de verdad y que la edad
+// esté entre 18 y 120 años.
 function isValidBirthDate(birthDate) {
-  const date = new Date(`${birthDate}T00:00:00`);
+  const text = String(birthDate || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const date = new Date(`${text}T00:00:00Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== text) return false;
   const today = new Date();
-  const minimumBirthDate = new Date(
-    today.getFullYear() - 18,
-    today.getMonth(),
-    today.getDate()
+  const minimumBirthDate = new Date(Date.UTC(today.getUTCFullYear() - 18, today.getUTCMonth(), today.getUTCDate()));
+  const maximumAgeDate = new Date(Date.UTC(today.getUTCFullYear() - 120, today.getUTCMonth(), today.getUTCDate()));
+  return date <= minimumBirthDate && date >= maximumAgeDate;
+}
+
+// La contraseña necesita entre 8 y 72 bytes (límite de bcrypt), una letra y un número.
+function isValidNewPassword(password) {
+  return (
+    typeof password === "string" &&
+    password.length >= 8 &&
+    Buffer.byteLength(password, "utf8") <= 72 &&
+    /\p{L}/u.test(password) &&
+    /\d/.test(password)
   );
-  return !Number.isNaN(date.getTime()) && date <= minimumBirthDate;
 }
 
 // Registra en Express todos los endpoints relacionados con autenticación.
 function registerRoutes(app, pool) {
   // Valida los datos y crea usuario y rol en la BD.
-  app.post("/api/registro", async (request, response) => {
+  app.post("/api/registro", registerLimiter, async (request, response) => {
     const {
       nombre_completo: name,
       correo: email,
@@ -36,6 +76,7 @@ function registerRoutes(app, pool) {
       placas_vehiculo: vehiclePlates,
       puertas_vehiculo: vehicleDoors
     } = request.body;
+    const normalizedName = String(name || "").trim().replace(/\s+/g, " ");
     const normalizedEmail = String(email || "").trim().toLowerCase();
     const normalizedPhone = String(phone || "").replace(/\D/g, "");
     const numericSexId = Number(sexId);
@@ -50,14 +91,23 @@ function registerRoutes(app, pool) {
     const numericVehicleDoors = Number(vehicleDoors);
     const hasVehicle = String(request.body.cuenta_con_coche || "") === "si";
 
-    if (!name || name.trim().length < 3) {
-      return redirectWithMessage(response, "auth/registro.html", "error", "Escribe tu nombre completo.");
+    if (
+      normalizedName.length < 3 ||
+      normalizedName.length > 100 ||
+      !/^\p{L}[\p{L}\s.'-]*$/u.test(normalizedName)
+    ) {
+      return redirectWithMessage(response, "auth/registro.html", "error", "Escribe tu nombre completo usando solo letras.");
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    if (normalizedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       return redirectWithMessage(response, "auth/registro.html", "error", "Escribe un correo electrónico válido.");
     }
-    if (typeof password !== "string" || password.length < 8) {
-      return redirectWithMessage(response, "auth/registro.html", "error", "La contraseña debe tener al menos 8 caracteres.");
+    if (!isValidNewPassword(password)) {
+      return redirectWithMessage(
+        response,
+        "auth/registro.html",
+        "error",
+        "La contraseña debe tener de 8 a 72 caracteres, con al menos una letra y un número."
+      );
     }
     if (!/^\d{10}$/.test(normalizedPhone)) {
       return redirectWithMessage(response, "auth/registro.html", "error", "El teléfono debe tener exactamente 10 dígitos.");
@@ -79,6 +129,7 @@ function registerRoutes(app, pool) {
       (normalizedAddress.length < 10 ||
         normalizedAddress.length > 250 ||
         normalizedEmergencyName.length < 3 ||
+        normalizedEmergencyName.length > 120 ||
         !/^\d{10}$/.test(normalizedEmergencyPhone) ||
         !["si", "no"].includes(String(request.body.cuenta_con_coche || "")) ||
         (hasVehicle && (
@@ -115,11 +166,11 @@ function registerRoutes(app, pool) {
            telefono_hash, id_sexo, fecha_nacimiento)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          name.trim(),
-          name.trim().split(/\s+/)[0],
+          normalizedName,
+          normalizedName.split(" ")[0],
           normalizedEmail,
           passwordHash,
-          normalizedPhone,
+          encryptSensitiveValue(normalizedPhone),
           hashPhone(normalizedPhone),
           numericSexId,
           birthDate
@@ -153,8 +204,14 @@ function registerRoutes(app, pool) {
         );
       }
       await connection.commit();
-      request.session.registrationRole = roleId === 2 ? "prestador" : "solicitante";
-      return redirectWithMessage(response, "auth/registro-exitoso.html", "success", "Registro exitoso.");
+      // La cuenta queda pendiente hasta confirmar el NIP enviado al correo.
+      request.session.pendingVerificationUserId = result.insertId;
+      try {
+        await sendRegistrationCode(pool, result.insertId, normalizedEmail);
+      } catch (error) {
+        console.error("No fue posible generar el NIP de registro:", error);
+      }
+      return redirectWithMessage(response, "auth/verificar-nip.html", "success", "Te enviamos un NIP de 6 dígitos a tu correo.");
     } catch (error) {
       if (connection) {
         await connection.rollback();
@@ -246,7 +303,8 @@ function registerRoutes(app, pool) {
   });
 
   // Busca por correo o teléfono, compara bcrypt y crea la sesión con el rol.
-  app.post("/api/login", async (request, response) => {
+  // Controla el bloqueo por intentos fallidos y la recuperación de cuentas borradas.
+  app.post("/api/login", loginLimiter, async (request, response) => {
     const identifier = String(request.body.correo || "").trim();
     const password = request.body.password;
     const normalizedEmail = identifier.toLowerCase();
@@ -254,8 +312,10 @@ function registerRoutes(app, pool) {
 
     if (
       !identifier ||
+      identifier.length > 254 ||
       typeof password !== "string" ||
       password.length < 8 ||
+      password.length > 128 ||
       (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) &&
         !/^\d{10}$/.test(normalizedPhone))
     ) {
@@ -268,29 +328,142 @@ function registerRoutes(app, pool) {
     }
 
     try {
+      // La consulta trae también las cuentas borradas o desactivadas para poder
+      // decidir aquí si se recuperan o se rechazan.
       const [users] = await pool.execute(
-        `SELECT id_usuario, nombre_completo, password_hash
+        `SELECT id_usuario, nombre_completo, correo, password_hash, id_estado_cuenta,
+                intentos_fallidos,
+                (bloqueado_hasta IS NOT NULL AND bloqueado_hasta > (NOW() AT TIME ZONE 'UTC')) AS bloqueada,
+                (fecha_eliminacion IS NOT NULL
+                 AND fecha_eliminacion > (NOW() AT TIME ZONE 'UTC') - make_interval(days => ?::int)) AS en_gracia
          FROM usuario
-         WHERE (correo = ? OR telefono_hash = ?) AND id_estado_cuenta IN (1, 2)
+         WHERE correo = ? OR telefono_hash = ?
          LIMIT 1`,
-        [normalizedEmail, hashPhone(normalizedPhone)]
+        [DELETE_GRACE_DAYS, normalizedEmail, hashPhone(normalizedPhone)]
       );
       const user = users[0];
-      if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      const passwordMatches = await bcrypt.compare(password, user ? user.password_hash : DUMMY_PASSWORD_HASH);
+
+      if (user && user.bloqueada) {
+        return redirectWithMessage(
+          response,
+          "auth/iniciar-sesion.html",
+          "error",
+          "Demasiados intentos fallidos. Intenta de nuevo en unos minutos."
+        );
+      }
+      if (!user || !passwordMatches) {
+        if (user) {
+          // Al llegar al máximo de intentos se bloquea la cuenta unos minutos.
+          await pool.execute(
+            `UPDATE usuario
+             SET intentos_fallidos = CASE WHEN intentos_fallidos + 1 >= ?::int THEN 0 ELSE intentos_fallidos + 1 END,
+                 bloqueado_hasta = CASE WHEN intentos_fallidos + 1 >= ?::int
+                   THEN (NOW() AT TIME ZONE 'UTC') + make_interval(mins => ?::int)
+                   ELSE bloqueado_hasta END
+             WHERE id_usuario = ?`,
+            [LOGIN_MAX_ATTEMPTS, LOGIN_MAX_ATTEMPTS, LOGIN_LOCK_MINUTES, user.id_usuario]
+          );
+          if (Number(user.intentos_fallidos) + 1 >= LOGIN_MAX_ATTEMPTS) {
+            sendMail({
+              to: user.correo,
+              subject: "Tu cuenta de CUIDARED fue bloqueada temporalmente",
+              text: `Detectamos ${LOGIN_MAX_ATTEMPTS} intentos fallidos al iniciar sesión. Tu cuenta quedará bloqueada ${LOGIN_LOCK_MINUTES} minutos. Si no fuiste tú, cambia tu contraseña cuando puedas.`
+            });
+          }
+        }
         return redirectWithMessage(response, "auth/iniciar-sesion.html", "error", "Correo o contraseña incorrectos.");
       }
 
+      // Desde aquí la contraseña es correcta. Se revisa el estado de la cuenta.
+      const stateId = Number(user.id_estado_cuenta);
+      if (stateId === STATE_PENDING) {
+        // La contraseña es correcta, pero falta verificar el correo: se envía un NIP nuevo.
+        request.session.pendingVerificationUserId = user.id_usuario;
+        await sendRegistrationCode(pool, user.id_usuario, user.correo);
+        return redirectWithMessage(response, "auth/verificar-nip.html", "error", "Debes verificar tu correo. Te enviamos un NIP nuevo.");
+      }
+      if (stateId === STATE_DELETED) {
+        if (!user.en_gracia) {
+          await expireDeletedAccount(pool, user.id_usuario);
+          return redirectWithMessage(
+            response,
+            "auth/iniciar-sesion.html",
+            "error",
+            `Esta cuenta fue eliminada hace más de ${DELETE_GRACE_DAYS} días y ya no se puede recuperar.`
+          );
+        }
+        // Dentro del plazo de gracia, iniciar sesión recupera la cuenta.
+        await reactivateAccount(pool, user.id_usuario);
+      } else if (stateId === STATE_SUSPENDED) {
+        const status = await restoreIfSuspensionEnded(pool, user.id_usuario);
+        if (!status.restored) {
+          return redirectWithMessage(
+            response,
+            "auth/iniciar-sesion.html",
+            "error",
+            `Tu cuenta está suspendida hasta ${new Date(status.until).toLocaleString("es-MX")}.`
+          );
+        }
+      } else if (stateId !== STATE_ACTIVE) {
+        return redirectWithMessage(
+          response,
+          "auth/iniciar-sesion.html",
+          "error",
+          "Esta cuenta no está disponible. Contacta al soporte de CUIDARED."
+        );
+      }
+
+      await pool.execute(
+        "UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id_usuario = ?",
+        [user.id_usuario]
+      );
       const [roles] = await pool.execute(
         `SELECT ur.id_rol, r.nombre FROM usuario_rol ur
          JOIN cat_rol r ON r.id_rol = ur.id_rol
          WHERE ur.id_usuario = ? ORDER BY ur.id_rol`,
         [user.id_usuario]
       );
-      const role = roles.some((item) => Number(item.id_rol) === 2) ? "prestador" : "solicitante";
+      const roleIds = roles.map((item) => Number(item.id_rol));
+      const role = roleIds.some((id) => id === 3 || id === 4)
+        ? "administrador"
+        : roleIds.includes(2) ? "prestador" : "solicitante";
+
+      // Los administradores confirman un código TOTP antes de abrir sesión.
+      if (role === "administrador" && admin2faEnabled) {
+        const [totpRows] = await pool.execute(
+          "SELECT 1 FROM totp_administrador WHERE id_usuario = ?",
+          [user.id_usuario]
+        );
+        if (totpRows.length === 0) {
+          return redirectWithMessage(response, "auth/iniciar-sesion.html", "error", "Tu cuenta de administrador no tiene 2FA configurado. Contacta al administrador principal.");
+        }
+        await new Promise((resolve, reject) => {
+          request.session.regenerate((error) => (error ? reject(error) : resolve()));
+        });
+        request.session.pendingAdmin = { id: user.id_usuario, principal: roleIds.includes(4) };
+        return response.redirect("/auth/verificar-totp.html");
+      }
+
+      // Se crea una sesión nueva al iniciar sesión para evitar la fijación de sesión.
+      await new Promise((resolve, reject) => {
+        request.session.regenerate((error) => (error ? reject(error) : resolve()));
+      });
       request.session.user = { id: user.id_usuario, name: user.nombre_completo, role };
-      return response.redirect(
-        role === "prestador" ? "/prestador/servicios.html" : "/solicitante/solicitar-servicio.html"
-      );
+      if (role === "administrador") {
+        const [flags] = await pool.execute(
+          "SELECT debe_cambiar_contrasena FROM usuario WHERE id_usuario = ?",
+          [user.id_usuario]
+        );
+        request.session.user.principal = roleIds.includes(4);
+        request.session.user.mustChange = Boolean(flags[0] && flags[0].debe_cambiar_contrasena);
+      }
+      const destinations = {
+        administrador: "/admin/usuarios.html",
+        prestador: "/prestador/servicios.html",
+        solicitante: "/solicitante/solicitar-servicio.html"
+      };
+      return response.redirect(request.session.user.mustChange ? "/auth/cambiar-contrasena.html" : destinations[role]);
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       return response.status(500).send("No fue posible iniciar sesión.");
@@ -301,7 +474,8 @@ function registerRoutes(app, pool) {
   app.get("/api/session", (request, response) => {
     response.json({
       authenticated: Boolean(request.session.user),
-      user: request.session.user || null
+      user: request.session.user || null,
+      twoFactor: admin2faEnabled
     });
   });
 

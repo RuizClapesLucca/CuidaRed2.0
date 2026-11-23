@@ -43,6 +43,21 @@ function decryptSensitiveValue(value) {
   return Buffer.concat([decipher.update(data), decipher.final()]).toString("utf8");
 }
 
+// Cifra y descifra archivos (evidencias) con el mismo esquema AES-GCM.
+function encryptBuffer(buffer) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", phoneEncryptionKey, iv);
+  const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
+  return Buffer.concat([iv, cipher.getAuthTag(), encrypted]);
+}
+
+function decryptBuffer(value) {
+  const encrypted = Buffer.from(value);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", phoneEncryptionKey, encrypted.subarray(0, 12));
+  decipher.setAuthTag(encrypted.subarray(12, 28));
+  return Buffer.concat([decipher.update(encrypted.subarray(28)), decipher.final()]);
+}
+
 // Genera una huella estable para buscar un teléfono sin guardar el número visible.
 function hashPhone(phone) {
   return crypto.createHmac("sha256", phoneHmacSecret).update(phone).digest("hex");
@@ -59,6 +74,9 @@ module.exports = {
   sessionSecret,
   encryptSensitiveValue,
   decryptSensitiveValue,
+  encryptBuffer,
+  decryptBuffer,
   hashPhone,
-  redirectWithMessage
+  redirectWithMessage,
+  admin2faEnabled: process.env.ADMIN_2FA === "true"
 };

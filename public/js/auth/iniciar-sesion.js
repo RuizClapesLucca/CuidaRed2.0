@@ -8,7 +8,7 @@ const passwordInput = document.getElementById("password");
 const submitButton = form.querySelector('button[type="submit"]');
 // Recupera el error colocado por el servidor en la URL después de un login
 // fallido y lo muestra sin insertar contenido HTML recibido externamente.
-message.textContent = params.get("error") || "";
+message.textContent = params.get("error") || params.get("success") || "";
 
 // Valida y normaliza los datos antes de permitir el envío. El botón se
 // deshabilita al final para evitar dos solicitudes de inicio de sesión.

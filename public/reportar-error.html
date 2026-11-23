@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Reporte técnico: avisa al equipo cuando algo del sistema no funciona. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reportar error | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <header class="site-header site-header--auth">
+      <a class="brand" href="/Modulo1.html">CUIDARED</a>
+    </header>
+    <main class="auth-main">
+      <h1 class="auth-title">Reportar un error</h1>
+      <p class="auth-subtitle">Cuéntanos qué módulo falló y qué estabas haciendo.</p>
+      <section class="auth-card">
+        <p class="form-message form-message--error" id="message" role="alert"></p>
+        <form id="ticket-form">
+          <div class="field">
+            <label class="field-label" for="modulo">Módulo</label>
+            <select class="field-input" id="modulo" name="modulo" required>
+              <option value="">Selecciona un módulo</option>
+              <option value="AUTENTICACION">Inicio de sesión y cuenta</option>
+              <option value="REGISTRO">Registro</option>
+              <option value="PETICIONES">Solicitudes</option>
+              <option value="PRESTADORES">Prestadores</option>
+              <option value="SERVICIOS">Servicios</option>
+              <option value="CALIFICACIONES">Calificaciones</option>
+              <option value="REPORTES">Incidencias</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="descripcion">Descripción</label>
+            <textarea class="field-input field-textarea" id="descripcion" name="descripcion" minlength="10" maxlength="500" required></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label" for="captura">Captura de pantalla <span class="field-hint">(opcional, JPG o PNG, máximo 5 MB)</span></label>
+            <input class="field-input" id="captura" name="captura" type="file" accept="image/jpeg,image/png">
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" type="submit">Enviar reporte técnico</button>
+            <a class="auth-link" href="/Modulo1.html">Volver</a>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script src="/js/common-form.js"></script>
+    <script src="/js/reportar-error.js"></script>
+  </body>
+</html>

@@ -195,6 +195,7 @@ function renderRequests(requests) {
         <p>${escapeHtml(item.fecha)} · ${escapeHtml(item.hora)} · ${escapeHtml(item.municipio)}</p></div>
         <div class="card-actions"><span class="status-pill status-pill--waiting">${escapeHtml(item.estado)}</span>
         <button class="btn-secondary edit-request" type="button" data-id="${item.id}" data-date="${item.fecha}" data-time="${item.hora}">Cambiar fecha</button>
+        <button class="btn-secondary postulations-request" type="button" data-id="${item.id}">Ver postulaciones</button>
         <button class="btn-secondary delete-request" type="button" data-id="${item.id}">Borrar</button></div>
       </article>`).join("")
     : "<p>Aún no has publicado solicitudes.</p>";
@@ -213,7 +214,9 @@ function renderAcceptedRequests(requests) {
         <p>Contacto: ${escapeHtml(item.contacto.nombre)} · ${escapeHtml(item.contacto.correo)} · ${escapeHtml(item.contacto.telefono)}</p>
         ${item.vehiculo ? `<p>Vehículo: ${escapeHtml(item.vehiculo.tipo)} · ${escapeHtml(item.vehiculo.color)} · Placas: ${escapeHtml(item.vehiculo.placas)} · ${escapeHtml(item.vehiculo.puertas)} puertas</p>` : ""}
         <div class="card-actions"><span class="status-pill ${item.iniciado ? "status-pill--progress" : "status-pill--waiting"}">${item.iniciado ? "En curso" : escapeHtml(item.estado)}</span>
-        <button class="btn-secondary delete-request" type="button" data-id="${item.id}">Borrar solicitud</button></div>
+        ${item.iniciado && !item.finalizado ? `<button class="btn-primary close-service" type="button" data-id="${item.servicio_id}">Marcar como terminado</button>` : ""}
+        ${item.iniciado ? `<a class="btn-secondary" href="/reportar.html?servicio=${item.servicio_id}&volver=/solicitante/solicitar-servicio.html">Levantar incidencia</a>` : ""}
+        <button class="btn-secondary delete-request" type="button" data-id="${item.id}">Cancelar solicitud</button></div>
       </article>`).join("")
     : "<p>Aún no tienes solicitudes aceptadas.</p>";
 }
@@ -225,6 +228,7 @@ function renderFinishedRequests(requests) {
         <div><span class="tag">${escapeHtml(item.categoria)}</span><h3>${escapeHtml(item.descripcion)}</h3>
         <p>${escapeHtml(item.fecha)} · ${escapeHtml(item.hora)} · ${escapeHtml(item.municipio)} · Prestador: ${escapeHtml(item.prestador)}</p>
         <p>Contacto: ${escapeHtml(item.contacto.nombre)} · ${escapeHtml(item.contacto.correo)} · ${escapeHtml(item.contacto.telefono)}</p>
+        <a class="btn-secondary" href="/reportar.html?servicio=${item.servicio_id}&volver=/solicitante/solicitar-servicio.html">Levantar incidencia</a>
         ${item.vehiculo ? `<p>Vehículo: ${escapeHtml(item.vehiculo.tipo)} · ${escapeHtml(item.vehiculo.color)} · Placas: ${escapeHtml(item.vehiculo.placas)} · ${escapeHtml(item.vehiculo.puertas)} puertas</p>` : ""}</div>
         <div class="finished-service-rating">
           ${item.calificacion
@@ -250,23 +254,8 @@ function renderFinishedRequests(requests) {
  * envía la operación al servidor y recarga los datos para mantener la vista actualizada.
  */
 async function deleteRequest(button) {
-  if (!window.confirm("¿Quieres borrar esta solicitud? Ya no estará disponible para ninguna de las dos partes.")) return;
-  try {
-    await requestJson(`/api/solicitudes/${button.dataset.id}`, { method: "DELETE" });
-  } catch (error) {
-    errorMessage.textContent = error.message;
-    return;
-  }
-  successMessage.textContent = "Solicitud borrada.";
-  try {
-    await loadPage();
-  } catch (error) {
-    if (error.status === 401) {
-      window.location.href = "/auth/iniciar-sesion.html";
-      return;
-    }
-    errorMessage.textContent = "La solicitud se borró, pero no fue posible actualizar el módulo.";
-  }
+  // La cancelación pide contraseña y motivo en su propia pantalla.
+  window.location.href = `/solicitante/cancelar.html?id=${button.dataset.id}`;
 }
 
 // Se usa delegación de eventos porque las tarjetas se crean dinámicamente
@@ -426,4 +415,78 @@ document.querySelectorAll(".module-tab").forEach((button) => {
     button.setAttribute("aria-selected", "true");
     document.getElementById(button.dataset.tab).classList.add("is-active");
   });
+});
+
+/**
+ * Muestra u oculta las postulaciones de una solicitud propia. Cada postulación
+ * se acepta o rechaza desde aquí; el servidor vuelve a validar cada decisión.
+ */
+async function togglePostulations(button) {
+  const card = button.closest("article");
+  const existing = card.querySelector(".postulations-panel");
+  if (existing) {
+    existing.remove();
+    return;
+  }
+  const panel = document.createElement("div");
+  panel.className = "postulations-panel";
+  panel.textContent = "Cargando postulaciones...";
+  card.appendChild(panel);
+  try {
+    const data = await requestJson(`/api/solicitudes/${button.dataset.id}/postulaciones`);
+    if (data.postulations.length === 0) {
+      panel.textContent = "Todavía no hay postulaciones para esta solicitud.";
+      return;
+    }
+    panel.innerHTML = data.postulations.map((item) => `<div class="postulation-item">
+      <p><strong>${escapeHtml(item.prestador)}</strong> · ${escapeHtml(item.calificacion)}</p>
+      <p>Tarifa propuesta: $${escapeHtml(item.tarifa_propuesta)} MXN</p>
+      ${item.mensaje ? `<p>${escapeHtml(item.mensaje)}</p>` : ""}
+      <p class="field-hint">Estado: ${escapeHtml(item.estado)}</p>
+      ${item.estado_id === 1 ? `<div class="card-actions">
+        <button class="btn-primary accept-postulation" type="button" data-id="${item.id}">Aceptar</button>
+        <button class="btn-secondary reject-postulation" type="button" data-id="${item.id}">Rechazar</button>
+      </div>` : ""}
+    </div>`).join("");
+  } catch (error) {
+    panel.textContent = error.message;
+  }
+}
+
+requestList.addEventListener("click", async (event) => {
+  const postulationsButton = event.target.closest(".postulations-request");
+  if (postulationsButton) {
+    togglePostulations(postulationsButton);
+    return;
+  }
+  const acceptButton = event.target.closest(".accept-postulation");
+  const rejectButton = event.target.closest(".reject-postulation");
+  if (!acceptButton && !rejectButton) return;
+  const target = acceptButton || rejectButton;
+  const action = acceptButton ? "aceptar" : "rechazar";
+  if (action === "aceptar" && !window.confirm("¿Aceptar esta postulación? Las demás se cerrarán.")) return;
+  target.disabled = true;
+  try {
+    await requestJson(`/api/postulaciones/${target.dataset.id}/${action}`, { method: "POST" });
+    successMessage.textContent = action === "aceptar" ? "Postulación aceptada." : "Postulación rechazada.";
+    await loadPage();
+  } catch (error) {
+    errorMessage.textContent = error.message;
+    target.disabled = false;
+  }
+});
+
+// Marca el servicio como terminado desde la sección de aceptadas.
+acceptedList.addEventListener("click", async (event) => {
+  const closeButton = event.target.closest(".close-service");
+  if (!closeButton) return;
+  closeButton.disabled = true;
+  try {
+    const data = await requestJson(`/api/servicios/${closeButton.dataset.id}/finalizar`, { method: "POST" });
+    successMessage.textContent = data.message;
+    await loadPage();
+  } catch (error) {
+    errorMessage.textContent = error.message;
+    closeButton.disabled = false;
+  }
 });

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Cambio obligatorio de la contraseña temporal de un administrador. -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cambiar contraseña | CUIDARED</title>
+    <link rel="stylesheet" href="/CSS/login-claro.css">
+  </head>
+  <body>
+    <header class="site-header site-header--auth">
+      <a class="brand" href="/Modulo1.html">CUIDARED</a>
+    </header>
+    <main class="auth-main">
+      <h1 class="auth-title">Cambia tu contraseña temporal</h1>
+      <p class="auth-subtitle">Para continuar debes definir una contraseña nueva.</p>
+      <section class="auth-card">
+        <p class="form-message form-message--error" id="message" role="alert"></p>
+        <form id="password-form">
+          <div class="field">
+            <label class="field-label" for="actual">Contraseña temporal</label>
+            <input class="field-input" id="actual" name="actual" type="password" required minlength="8" maxlength="72" autocomplete="current-password">
+          </div>
+          <div class="field">
+            <label class="field-label" for="nueva">Nueva contraseña</label>
+            <input class="field-input" id="nueva" name="nueva" type="password" required minlength="8" maxlength="72" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label class="field-label" for="confirmar">Confirmar nueva contraseña</label>
+            <input class="field-input" id="confirmar" name="confirmar" type="password" required minlength="8" maxlength="72" autocomplete="new-password">
+          </div>
+          <div class="form-actions"><button class="btn-primary" type="submit">Guardar</button></div>
+        </form>
+      </section>
+    </main>
+    <script src="/js/common-form.js"></script>
+    <script src="/js/auth/cambiar-contrasena.js"></script>
+  </body>
+</html>
