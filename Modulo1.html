@@ -10,18 +10,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/CSS/login-claro.css">
+    <link rel="stylesheet" href="/CSS/ui.css">
+    <script src="/js/nav.js" defer></script>
+    <script src="/js/sesion-nav.js" defer></script>
   </head>
   <body>
-    <!-- Header superior: solo marca, acciones de sesion y toggle de tema. -->
+    <!-- Header superior con navegación, sesión y toggle de tema. -->
     <header class="site-header site-header--sticky">
-      <!-- marca simplificada sin nombre de empresa -->
+      <!-- Marca simplificada sin nombre de empresa. -->
       <a class="brand" href="/Modulo1.html">CuidaRed</a>
-      <!-- acciones de sesion y tema agrupadas a la derecha -->
-      <div class="header-actions">
+      <nav class="header-nav">
         <button class="btn-ghost theme-toggle" id="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false">Modo oscuro</button>
-        <a class="header-link" href="/auth/iniciar-sesion.html">Iniciar sesión</a>
-        <a class="header-button" href="/auth/registro.html">Registrarme</a>
-      </div>
+        <a class="header-link" href="/auth/iniciar-sesion.html" data-guest-only>Iniciar sesión</a>
+        <a class="header-button" href="/auth/registro.html" data-guest-only>Registrarme</a>
+        <a class="header-link" href="/Modulo1.html" data-home-link data-auth-only hidden>Mi panel</a>
+        <a class="header-button" href="/api/logout" data-auth-only hidden>Cerrar sesión</a>
+      </nav>
     </header>
     <!-- subnav con links de seccion, sticky debajo del header -->
     <nav class="subnav" aria-label="Secciones de la pagina">
@@ -49,7 +53,7 @@
         <div class="home-hero-content">
           <h1 class="page-title home-hero-title">Ayuda de confianza, a un clic</h1>
           <div class="home-hero-actions">
-            <a class="btn-primary home-hero-button" href="/auth/registro.html">Comenzar</a>
+            <a class="btn-primary home-hero-button" href="/auth/registro.html" data-guest-only>Comenzar</a>
           </div>
         </div>
       </section>

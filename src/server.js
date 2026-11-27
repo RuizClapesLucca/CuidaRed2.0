@@ -1,4 +1,5 @@
 const path = require("path");
+const http = require("http");
 const express = require("express");
 const session = require("express-session");
 const pool = require("./js/db");
@@ -16,6 +17,8 @@ const { requirePasswordChangeFirst } = require("./js/middleware");
 const { registerRequestRoutes } = require("./js/routes-requests");
 const { registerAccountRoutes } = require("./js/routes-account");
 const { registerAdminRoutes } = require("./js/routes-admin");
+const { attachRealtime } = require("./js/realtime");
+const { registerRealtimeRoutes } = require("./js/routes-realtime");
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -54,15 +57,14 @@ app.use(express.urlencoded({ extended: false, limit: "20kb" }));
 app.use(express.json({ limit: "20kb" }));
 
 // Conserva el usuario autenticado entre peticiones.
-app.use(
-  session({
-    secret: sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-    // secure "auto" marca la cookie solo para HTTPS, así sigue funcionando en local.
-    cookie: { httpOnly: true, sameSite: "lax", secure: "auto", maxAge: 86400000 }
-  })
-);
+const sessionMiddleware = session({
+  secret: sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  // secure "auto" marca la cookie solo para HTTPS, así sigue funcionando en local.
+  cookie: { httpOnly: true, sameSite: "lax", secure: "auto", maxAge: 86400000 }
+});
+app.use(sessionMiddleware);
 
 // Cierra la sesión de cuentas borradas o desactivadas antes de atender la API.
 app.use("/api", enforceActiveAccount(pool));
@@ -98,6 +100,7 @@ registerRegenerateRoutes(app, pool);
 registerRequestRoutes(app, pool);
 registerAccountRoutes(app, pool);
 registerAdminRoutes(app, pool);
+registerRealtimeRoutes(app);
 
 // Cualquier ruta /api que no exista responde en JSON y sin detalles internos.
 app.use("/api", (request, response) => {
@@ -125,6 +128,9 @@ process.on("unhandledRejection", (reason) => {
   console.error("Promesa rechazada sin manejar:", reason);
 });
 
-app.listen(port, () => {
+// Un solo servidor HTTP para la app y el WebSocket (Render expone un solo puerto).
+const server = http.createServer(app);
+attachRealtime(server, sessionMiddleware);
+server.listen(port, () => {
   console.log(`CUIDARED disponible en http://localhost:${port}`);
 });

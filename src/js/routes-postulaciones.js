@@ -3,6 +3,7 @@
 // deben confirmar el cierre, o el sistema lo cierra solo a las 24 horas.
 const { requireSession, requireRole } = require("./middleware");
 const { finalizeService, expirePostulations } = require("./services-lifecycle");
+const { notifyUser } = require("./realtime");
 
 const POSTULATION = { ENVIADA: 1, ACEPTADA: 2, RECHAZADA: 3, RETIRADA: 4 };
 const PETITION = { EN_ESPERA: 1, POR_EMPEZAR: 2 };
@@ -32,7 +33,7 @@ function registerPostulationRoutes(app, pool) {
     try {
       await connection.beginTransaction();
       const [petitions] = await connection.execute(
-        `SELECT p.id_peticion, c.nombre AS categoria
+        `SELECT p.id_peticion, p.id_buscador, c.nombre AS categoria
          FROM peticion p
          JOIN cat_categoria c ON c.id_categoria = p.id_categoria
          WHERE p.id_peticion = ? AND p.id_estado_peticion = ?
@@ -75,6 +76,11 @@ function registerPostulationRoutes(app, pool) {
         [requestId, profiles[0].id_perfil, message || null, fee, POSTULATION.ENVIADA]
       );
       await connection.commit();
+      notifyUser(petitions[0].id_buscador, {
+        type: "info",
+        title: "Nueva postulación",
+        message: "Un prestador se postuló a tu solicitud. Revísala en Ver postulaciones."
+      });
       return response.status(201).json({ message: "Postulación enviada. El solicitante te responderá." });
     } catch (error) {
       await connection.rollback();
@@ -176,7 +182,7 @@ function registerPostulationRoutes(app, pool) {
         `SELECT po.id_postulacion, po.id_peticion, po.id_estado_postulacion, po.tarifa_propuesta,
                 p.id_buscador, p.id_estado_peticion,
                 ((p.fecha_programada + p.hora_programada) > (NOW() AT TIME ZONE 'UTC')) AS vigente,
-                c.nombre AS categoria, pp.activo, pp.cuenta_con_coche
+                c.nombre AS categoria, pp.activo, pp.cuenta_con_coche, pp.id_usuario AS prestador_id
          FROM postulacion po
          JOIN peticion p ON p.id_peticion = po.id_peticion
          JOIN cat_categoria c ON c.id_categoria = p.id_categoria
@@ -230,6 +236,11 @@ function registerPostulationRoutes(app, pool) {
         [item.id_peticion, postulationId]
       );
       await connection.commit();
+      notifyUser(item.prestador_id, {
+        type: "success",
+        title: "¡Te aceptaron!",
+        message: "Tu postulación fue aceptada. El servicio ya está confirmado."
+      });
       return response.json({ message: "Postulación aceptada. El servicio quedó confirmado." });
     } catch (error) {
       await connection.rollback();

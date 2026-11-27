@@ -3,6 +3,7 @@
 // medida_cuenta y bitacora. No se borra ninguna fila.
 const { requireSession, requireRole } = require("./middleware");
 const { cancelOpenRequests, logEvent, STATE_DISABLED } = require("./routes-account");
+const { disconnectUser } = require("./realtime");
 
 const USERS_PER_PAGE = 20;
 const PERMANENT_REMOVAL_MEASURE = 3;
@@ -109,6 +110,8 @@ function registerAdminRoutes(app, pool) {
         motivo: reason
       });
       await connection.commit();
+      // La cuenta ya no puede usarse: se cierran sus avisos en tiempo real.
+      disconnectUser(targetId);
       return response.json({ message: "La cuenta fue desactivada." });
     } catch (error) {
       await connection.rollback();
