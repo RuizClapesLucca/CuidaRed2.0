@@ -35,6 +35,8 @@ function encryptSensitiveValue(value) {
 function decryptSensitiveValue(value) {
   if (!value) return "";
   const encrypted = Buffer.from(value);
+  // CAMBIO: datos viejos guardados en texto plano (sin IV ni etiqueta) se devuelven tal cual.
+  if (encrypted.length < 28) return encrypted.toString("utf8");
   const iv = encrypted.subarray(0, 12);
   const authTag = encrypted.subarray(12, 28);
   const data = encrypted.subarray(28);
