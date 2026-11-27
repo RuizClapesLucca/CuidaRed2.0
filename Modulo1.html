@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Servicios | CUIDARED</title>
     <link rel="stylesheet" href="/CSS/login-claro.css">
+    <link rel="stylesheet" href="/CSS/ui.css">
+    <script src="/js/nav.js" defer></script>
+    <script src="/js/sesion-nav.js" defer></script>
   </head>
   <body>
     <!-- Encabezado con navegación a las opciones de autenticación. -->
@@ -17,8 +20,10 @@
         <a class="header-link" href="#servicios">Servicios</a>
         <a class="header-link" href="#contacto">Contacto</a>
         <button class="header-button theme-toggle" id="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false">Modo oscuro</button>
-        <a class="header-link" href="/auth/iniciar-sesion.html">Iniciar sesión</a>
-        <a class="header-button" href="/auth/registro.html">Registrarme</a>
+        <a class="header-link" href="/auth/iniciar-sesion.html" data-guest-only>Iniciar sesión</a>
+        <a class="header-button" href="/auth/registro.html" data-guest-only>Registrarme</a>
+        <a class="header-link" href="/Modulo1.html" data-home-link data-auth-only hidden>Mi panel</a>
+        <a class="header-button" href="/api/logout" data-auth-only hidden>Cerrar sesión</a>
       </nav>
     </header>
     <main class="page-main home-main">
@@ -41,7 +46,7 @@
           <p class="eyebrow">CUIDARED</p>
           <h1 class="page-title home-hero-title">Ayuda de confianza, a un clic</h1>
           <div class="home-hero-actions">
-            <a class="btn-primary home-hero-button" href="/auth/registro.html">Comenzar</a>
+            <a class="btn-primary home-hero-button" href="/auth/registro.html" data-guest-only>Comenzar</a>
           </div>
         </div>
       </section>

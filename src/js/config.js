@@ -69,8 +69,44 @@ function redirectWithMessage(response, page, type, message) {
   response.redirect(`/${page}?${query.toString()}`);
 }
 
+// Ruta de inicio de cada rol. Es la única fuente de estos destinos: la usan el login,
+// /api/session y los guardias de página, para que nunca se contradigan.
+const HOME_BY_ROLE = {
+  administrador: "/admin/usuarios.html",
+  prestador: "/prestador/servicios.html",
+  solicitante: "/solicitante/solicitar-servicio.html"
+};
+
+// URL pública del WebSocket de avisos (ej. wss://cuidared-xxxx.onrender.com/ws).
+// Vacía en local: el cliente usa el mismo dominio que la página.
+const realtimePublicUrl = (process.env.REALTIME_PUBLIC_URL || "").trim();
+
+// Orígenes de página que pueden abrir el WebSocket (ej. https://tu-app.vercel.app),
+// separados por comas. El propio dominio del servidor siempre está permitido.
+const realtimeAllowedOrigins = (process.env.REALTIME_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, "").toLowerCase())
+  .filter(Boolean);
+
+// Devuelve el origen (esquema + host) del WebSocket para la política CSP, por ejemplo
+// "wss://cuidared-xxxx.onrender.com". Si la URL no es válida, no se agrega nada.
+function realtimeConnectSource() {
+  if (!realtimePublicUrl) return "";
+  try {
+    const url = new URL(realtimePublicUrl);
+    if (url.protocol !== "ws:" && url.protocol !== "wss:") return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
 module.exports = {
   required,
+  HOME_BY_ROLE,
+  realtimePublicUrl,
+  realtimeAllowedOrigins,
+  realtimeConnectSource,
   sessionSecret,
   encryptSensitiveValue,
   decryptSensitiveValue,

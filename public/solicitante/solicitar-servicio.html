@@ -6,15 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Solicitar servicio | CUIDARED</title>
     <link rel="stylesheet" href="/CSS/login-claro.css">
+    <script src="/js/script.js" defer></script>
+    <link rel="stylesheet" href="/CSS/ui.css">
+    <script src="/js/nav.js" defer></script>
+    <script src="/js/notificaciones.js" defer></script>
+    <script src="/js/sesion-nav.js" defer></script>
   </head>
   <body>
+    <script src="/js/tema.js"></script>
     <!-- Encabezado con identidad del sitio y cierre de sesión. -->
     <header class="site-header">
-      <a class="brand" href="/solicitante/solicitar-servicio.html">CUIDARED</a>
+      <a class="brand" href="/solicitante/solicitar-servicio.html" data-home-link>CUIDARED</a>
       <nav class="header-nav">
         <a class="header-link" href="/cuenta/editar.html">Mi cuenta</a>
         <a class="header-link" href="/reportar-error.html">Reportar error</a>
         <button class="header-link header-link--button" type="button" id="delete-account-button">Borrar cuenta</button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activar modo oscuro" aria-pressed="false"></button>
         <a class="header-button" href="/api/logout">Cerrar sesión</a>
       </nav>
     </header>

@@ -1,5 +1,6 @@
 // Middleware: funciones que se ejecutan antes de llegar al controlador de una ruta.
-const { redirectWithMessage } = require("./config");
+const { redirectWithMessage, HOME_BY_ROLE, realtimeConnectSource } = require("./config");
+const { disconnectUser } = require("./realtime");
 
 // Convierte nombres antiguos del catálogo de roles al valor que usan las rutas.
 function normalizeRole(role) {
@@ -54,7 +55,7 @@ function requirePrincipal(request, response, next) {
 function requirePasswordChangeFirst(request, response, next) {
   const user = request.session.user;
   if (!user || !user.mustChange) return next();
-  const allowed = ["/auth/cambiar-contrasena.html", "/api/cuenta/cambiar-contrasena", "/api/logout"];
+  const allowed = ["/auth/cambiar-contrasena.html", "/api/cuenta/cambiar-contrasena", "/api/logout", "/api/session"];
   const isAsset = ["/js/", "/CSS/", "/img/"].some((prefix) => request.path.startsWith(prefix));
   if (allowed.includes(request.path) || isAsset) return next();
   if (request.path.startsWith("/api/")) {
@@ -64,19 +65,32 @@ function requirePasswordChangeFirst(request, response, next) {
 }
 
 // Protege las páginas HTML para que cada rol entre únicamente a su módulo.
-// Se ejecuta antes de servir el archivo y redirige a login si el rol no coincide.
+// Sin sesión se va al inicio de sesión. Con sesión pero de otro rol, se va al inicio
+// de su propio módulo (no al login, que daría la impresión de que la sesión se perdió).
+// Las páginas marcadas con "*" solo piden que exista una sesión, sin importar el rol.
+const PROTECTED_PAGES = {
+  "/solicitante/solicitar-servicio.html": "solicitante",
+  "/solicitante/cancelar.html": "solicitante",
+  "/prestador/servicios.html": "prestador",
+  "/prestador/registrar-vehiculo.html": "prestador",
+  "/admin/usuarios.html": "administrador",
+  "/admin/gestion.html": "administrador",
+  "/admin/reportes.html": "administrador",
+  "/cuenta/editar.html": "*"
+};
+
 function protectModulePages(request, response, next) {
-  const protectedRoutes = {
-    "/solicitante/solicitar-servicio.html": "solicitante",
-    "/prestador/servicios.html": "prestador",
-    "/prestador/registrar-vehiculo.html": "prestador",
-    "/admin/usuarios.html": "administrador"
-  };
-  const requiredRole = protectedRoutes[request.path];
-  if (requiredRole && (!request.session.user || normalizeRole(request.session.user.role) !== requiredRole)) {
-    return response.redirect("/auth/iniciar-sesion.html");
-  }
-  next();
+  const requiredRole = PROTECTED_PAGES[request.path];
+  if (!requiredRole) return next();
+
+  const sessionUser = request.session.user;
+  if (!sessionUser) return response.redirect("/auth/iniciar-sesion.html");
+
+  const role = normalizeRole(sessionUser.role);
+  if (requiredRole === "*" || role === requiredRole) return next();
+
+  // Un rol sin módulo asignado (o desconocido) cae en la página pública, nunca en un bucle.
+  return response.redirect(HOME_BY_ROLE[role] || "/Modulo1.html");
 }
 
 // Agrega cabeceras que reducen el riesgo de clickjacking, sniffing de contenido
@@ -90,7 +104,7 @@ function securityHeaders(request, response, next) {
   response.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-      "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; " +
+      "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'" + (realtimeConnectSource() ? ` ${realtimeConnectSource()}` : "") + "; " +
       "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
   );
   if (process.env.NODE_ENV === "production") {
@@ -112,6 +126,7 @@ function enforceActiveAccount(pool) {
         [sessionUser.id]
       );
       if (rows.length > 0 && [1, 2].includes(Number(rows[0].id_estado_cuenta))) return next();
+      disconnectUser(sessionUser.id);
       return request.session.destroy(() => {
         response.status(401).json({ message: "Tu cuenta ya no está activa." });
       });

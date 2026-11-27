@@ -1,6 +1,7 @@
 // Rutas de cuentas: registro, inicio/cierre de sesión y confirmación de registro.
 const bcrypt = require("bcrypt");
-const { redirectWithMessage, encryptSensitiveValue, hashPhone, admin2faEnabled } = require("./config");
+const { redirectWithMessage, encryptSensitiveValue, hashPhone, admin2faEnabled, HOME_BY_ROLE } = require("./config");
+const { disconnectUser } = require("./realtime");
 const { requireRole, createRateLimiter } = require("./middleware");
 const { sendRegistrationCode } = require("./codes");
 const { restoreIfSuspensionEnded, STATE_SUSPENDED } = require("./sanciones");
@@ -458,12 +459,8 @@ function registerRoutes(app, pool) {
         request.session.user.principal = roleIds.includes(4);
         request.session.user.mustChange = Boolean(flags[0] && flags[0].debe_cambiar_contrasena);
       }
-      const destinations = {
-        administrador: "/admin/usuarios.html",
-        prestador: "/prestador/servicios.html",
-        solicitante: "/solicitante/solicitar-servicio.html"
-      };
-      return response.redirect(request.session.user.mustChange ? "/auth/cambiar-contrasena.html" : destinations[role]);
+      // Un administrador con contraseña temporal debe cambiarla antes de entrar a su módulo.
+      return response.redirect(request.session.user.mustChange ? "/auth/cambiar-contrasena.html" : HOME_BY_ROLE[role]);
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       return response.status(500).send("No fue posible iniciar sesión.");
@@ -471,10 +468,13 @@ function registerRoutes(app, pool) {
   });
 
   // Informa al frontend si existe una sesión activa y su usuario básico.
+  // Incluye "home", la ruta de inicio del rol, para que el menú enlace al módulo correcto.
   app.get("/api/session", (request, response) => {
+    const user = request.session.user || null;
     response.json({
-      authenticated: Boolean(request.session.user),
-      user: request.session.user || null,
+      authenticated: Boolean(user),
+      user,
+      home: user ? HOME_BY_ROLE[user.role] || null : null,
       twoFactor: admin2faEnabled
     });
   });
@@ -491,11 +491,14 @@ function registerRoutes(app, pool) {
 
   // Destruye la sesión y vuelve a la página principal.
   app.get("/api/logout", (request, response) => {
+    const userId = request.session.user && request.session.user.id;
     request.session.destroy((error) => {
       if (error) {
         console.error("Error al cerrar sesión:", error);
         return response.status(500).send("No fue posible cerrar sesión.");
       }
+      // Cierra los avisos abiertos de esta sesión en todas las pestañas.
+      if (userId) disconnectUser(userId);
       response.redirect("/Modulo1.html");
     });
   });

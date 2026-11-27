@@ -23,6 +23,8 @@ Orden obligatorio: 1) Supabase, 2) Render, 3) Vercel.
 3. En **Environment**, agrega estas variables:
    - `DATABASE_URL`: la cadena de Supabase del paso 1.
    - `SESSION_SECRET`, `PHONE_HMAC_SECRET`, `PHONE_ENCRYPTION_KEY`: valores nuevos (ver `.env.example`).
+   - `REALTIME_PUBLIC_URL`: `wss://TU-APP.onrender.com/ws` (la misma URL de Render, cambiando `https` por `wss`).
+   - `REALTIME_ALLOWED_ORIGINS`: la URL pública de Vercel, por ejemplo `https://TU-APP.vercel.app`.
 4. Crea el servicio. Cuando termine, Render te da una URL como `https://cuidared-xxxx.onrender.com`. Pruébala en el navegador.
 
 ## 4. Vercel (puerta pública)
@@ -34,6 +36,7 @@ Orden obligatorio: 1) Supabase, 2) Render, 3) Vercel.
 
 ## Notas
 
+- Los avisos en tiempo real van directo a Render (Vercel no reenvía WebSockets). Por eso `REALTIME_PUBLIC_URL` y `REALTIME_ALLOWED_ORIGINS` son obligatorias en producción; sin ellas los avisos no llegan a la versión pública.
 - Render en plan gratis se duerme sin uso; la primera carga puede tardar un minuto.
 - Las sesiones se guardan en memoria: si Render reinicia el servicio, los usuarios tendrán que volver a iniciar sesión.
 - La base de datos nueva no trae usuarios. Crea las cuentas desde el registro.
