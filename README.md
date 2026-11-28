@@ -9,7 +9,7 @@
 
 ## Video
 
-[Ver video en OneDrive](PEGA-AQUÍ-EL-LINK)
+[Ver video en OneDrive](https://correoipn-my.sharepoint.com/:v:/r/personal/lruizc2402_alumno_ipn_mx/_layouts/15/stream.aspx?id=%2Fpersonal%2Flruizc2402_alumno_ipn_mx%2FDocuments%2Fbuena.mp4&share=cQr6lQ076GHZT79jsdHEEAOkEgUDYlv3i7DR84Pi85oCKkOWAw&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0)
 
 ## De qué trata el proyecto
 
